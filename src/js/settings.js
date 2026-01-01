@@ -3,9 +3,10 @@ import { refreshTimer, setInspectionEnabled } from "./timer.js";
 import { renderSolves } from "./history.js";
 import { renderStats } from "./stats.js";
 import { renderCharts } from "./charts.js";
+import { refreshLeaderboard } from "./leaderboard.js";
 import { resetCube } from "./cube.js";
 import { generateScramble } from "./scramble.js";
-import { CUBE_TYPES } from "./cubes.js";
+import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
 
 const THEME_FIELDS = [
   { id: "custom-bg-start", variable: "--color-bg-start" },
@@ -24,10 +25,13 @@ const THEME_FIELDS = [
 const themeSelect = () => document.getElementById("theme-select");
 const customPanel = () => document.getElementById("custom-theme-panel");
 const inspectionToggle = () => document.getElementById("inspection-toggle");
+const soundToggle = () => document.getElementById("sound-toggle");
 const precisionSelect = () => document.getElementById("precision-select");
 const cubeSelect = () => document.getElementById("cube-select");
 const cubeNote = () => document.getElementById("cube-note");
 const cubeLabel = () => document.getElementById("cube-label");
+const cubeScramble = () => document.getElementById("cube-scramble");
+const cubeInspection = () => document.getElementById("cube-inspection");
 
 const applyCustomTheme = (customTheme) => {
   Object.entries(customTheme).forEach(([variable, value]) => {
@@ -70,6 +74,19 @@ const updateCubeLabel = (cubeType) => {
   label.textContent = cubeType;
 };
 
+const updateCubeMeta = (cubeType) => {
+  const config = getCubeConfig(cubeType);
+  const scramble = cubeScramble();
+  const inspection = cubeInspection();
+
+  if (scramble) {
+    scramble.textContent = `Scramble: ${config.scrambleLength} moves`;
+  }
+  if (inspection) {
+    inspection.textContent = `Inspection: ${config.inspectionSeconds ?? 15}s`;
+  }
+};
+
 export const initSettings = () => {
   const { settings } = getState();
 
@@ -78,6 +95,14 @@ export const initSettings = () => {
     inspection.checked = settings.inspectionEnabled;
     inspection.addEventListener("change", (event) => {
       setInspectionEnabled(event.target.checked);
+    });
+  }
+
+  const sound = soundToggle();
+  if (sound) {
+    sound.checked = settings.soundEnabled;
+    sound.addEventListener("change", (event) => {
+      updateSettings({ soundEnabled: event.target.checked });
     });
   }
 
@@ -123,8 +148,10 @@ export const initSettings = () => {
       renderSolves();
       renderStats();
       renderCharts();
+      refreshLeaderboard();
       updateCubeNote(value);
       updateCubeLabel(value);
+      updateCubeMeta(value);
     });
   }
 
@@ -154,4 +181,5 @@ export const initSettings = () => {
   }
   updateCubeNote(settings.cubeType ?? "3x3");
   updateCubeLabel(settings.cubeType ?? "3x3");
+  updateCubeMeta(settings.cubeType ?? "3x3");
 };

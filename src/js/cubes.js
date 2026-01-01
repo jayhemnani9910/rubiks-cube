@@ -8,22 +8,46 @@ const AXIS_MAP = {
 };
 
 const MODIFIERS = ["", "2", "'"];
+const BASE_MOVES = ["R", "L", "U", "D", "F", "B"];
+const WIDE_MOVES = ["Rw", "Lw", "Uw", "Dw", "Fw", "Bw"];
+const TRIPLE_WIDE_MOVES = ["3Rw", "3Lw", "3Uw", "3Dw", "3Fw", "3Bw"];
 
 export const CUBE_CONFIG = {
   "2x2": {
     label: "2x2",
     scrambleLength: 11,
+    inspectionSeconds: 15,
     moves: ["R", "U", "F"],
   },
   "3x3": {
     label: "3x3",
     scrambleLength: 20,
-    moves: ["R", "L", "U", "D", "F", "B"],
+    inspectionSeconds: 15,
+    moves: BASE_MOVES,
   },
   "4x4": {
     label: "4x4",
     scrambleLength: 40,
-    moves: ["R", "L", "U", "D", "F", "B", "Rw", "Lw", "Uw", "Dw", "Fw", "Bw"],
+    inspectionSeconds: 15,
+    moves: [...BASE_MOVES, ...WIDE_MOVES],
+  },
+  "5x5": {
+    label: "5x5",
+    scrambleLength: 60,
+    inspectionSeconds: 15,
+    moves: [...BASE_MOVES, ...WIDE_MOVES],
+  },
+  "6x6": {
+    label: "6x6",
+    scrambleLength: 80,
+    inspectionSeconds: 15,
+    moves: [...BASE_MOVES, ...WIDE_MOVES, ...TRIPLE_WIDE_MOVES],
+  },
+  "7x7": {
+    label: "7x7",
+    scrambleLength: 100,
+    inspectionSeconds: 15,
+    moves: [...BASE_MOVES, ...WIDE_MOVES, ...TRIPLE_WIDE_MOVES],
   },
 };
 
@@ -37,7 +61,12 @@ export const getCubeConfig = (cubeType) =>
 
 const randomItem = (list) => list[Math.floor(Math.random() * list.length)];
 
-const getAxis = (move) => AXIS_MAP[move[0]];
+const getFaceLetter = (move) => {
+  const match = move.match(/[RLUDFB]/);
+  return match ? match[0] : move[0];
+};
+
+const getAxis = (move) => AXIS_MAP[getFaceLetter(move)];
 
 export const buildScramble = (cubeType) => {
   const { scrambleLength, moves } = getCubeConfig(cubeType);

@@ -15,6 +15,11 @@ import { initCharts, renderCharts } from "./charts.js";
 import { initSessions } from "./sessions.js";
 import { initIO } from "./io.js";
 import { initPwa } from "./pwa.js";
+import { initPreview } from "./preview.js";
+import { initLeaderboard } from "./leaderboard.js";
+import { initTutorial } from "./tutorial.js";
+import { initOnboarding } from "./onboarding.js";
+import { initSolver } from "./solver.js";
 
 const CUBE_TURN_INDEX = {
   left: 0,
@@ -81,6 +86,11 @@ initSettings();
 initSessions();
 initIO();
 initPwa();
+initPreview();
+initLeaderboard();
+initTutorial();
+initOnboarding();
+initSolver();
 renderSolves();
 renderStats();
 initCharts();

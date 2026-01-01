@@ -8,6 +8,7 @@ import {
   cubeState,
   getFaceColors,
 } from "./state.js";
+import { syncPreview } from "./preview.js";
 
 const getElement = (id) => document.getElementById(id);
 const getPartColor = (id) =>
@@ -38,6 +39,8 @@ export const applyTurn = (index, face) => {
     getElement(SIDE_ARRAY[index][i]).style.backgroundColor = color;
     getElement(`x${SIDE_ARRAY[index][i]}`).style.backgroundColor = color;
   }
+
+  syncPreview();
 };
 
 export const rotateFace = (key) => {
@@ -88,4 +91,6 @@ export const resetCube = () => {
   cubeState.currentClass = "s23";
   cube.classList.add(cubeState.currentClass);
   cubeState.currentState = 1;
+
+  syncPreview();
 };

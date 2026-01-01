@@ -1,2 +1,4 @@
 node_modules/
 dist/
+src/wasm/solver.js
+src/wasm/solver.wasm

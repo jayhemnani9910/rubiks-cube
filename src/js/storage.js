@@ -8,6 +8,7 @@ const DEFAULT_STATE = {
     sessionId: null,
     theme: "dark",
     inspectionEnabled: true,
+    soundEnabled: false,
     precision: 3,
     customTheme: {
       "--color-bg-start": "#505050",
@@ -22,6 +23,11 @@ const DEFAULT_STATE = {
       "--face-right": "#ff0000",
       "--face-left": "#ff8c00",
     },
+  },
+  tutorial: {
+    completed: {},
+    lastLessonId: null,
+    onboardingSeen: false,
   },
   sessions: [],
   solves: [],
@@ -41,6 +47,10 @@ const mergeState = (state) => {
       ...DEFAULT_STATE.settings.customTheme,
       ...(state?.settings?.customTheme ?? {}),
     },
+  };
+  const tutorial = {
+    ...DEFAULT_STATE.tutorial,
+    ...(state?.tutorial ?? {}),
   };
 
   const incomingSessions = Array.isArray(state?.sessions) ? state.sessions : [];
@@ -67,6 +77,7 @@ const mergeState = (state) => {
       ...settings,
       sessionId: activeSessionId,
     },
+    tutorial,
     sessions,
     solves: normalizedSolves,
   };
@@ -111,6 +122,15 @@ export const updateSettings = (partialSettings) =>
         ...state.settings.customTheme,
         ...(partialSettings.customTheme ?? {}),
       },
+    },
+  }));
+
+export const updateTutorial = (partialTutorial) =>
+  updateState((state) => ({
+    ...state,
+    tutorial: {
+      ...state.tutorial,
+      ...partialTutorial,
     },
   }));
 

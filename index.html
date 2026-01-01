@@ -28,9 +28,53 @@
             <div class="panel-title">Scramble <span id="cube-label">3x3</span></div>
             <div id="seq" class="scramble-text">&nbsp;</div>
         </section>
+        <section class="hud-panel preview-panel">
+            <div class="panel-title">Preview</div>
+            <div class="preview-net" id="preview-net">
+                <div class="preview-face preview-up">
+                    <span data-piece="u1"></span><span data-piece="u2"></span><span data-piece="u3"></span>
+                    <span data-piece="u4"></span><span data-piece="u5"></span><span data-piece="u6"></span>
+                    <span data-piece="u7"></span><span data-piece="u8"></span><span data-piece="u9"></span>
+                </div>
+                <div class="preview-face preview-left">
+                    <span data-piece="l1"></span><span data-piece="l2"></span><span data-piece="l3"></span>
+                    <span data-piece="l4"></span><span data-piece="l5"></span><span data-piece="l6"></span>
+                    <span data-piece="l7"></span><span data-piece="l8"></span><span data-piece="l9"></span>
+                </div>
+                <div class="preview-face preview-front">
+                    <span data-piece="f1"></span><span data-piece="f2"></span><span data-piece="f3"></span>
+                    <span data-piece="f4"></span><span data-piece="f5"></span><span data-piece="f6"></span>
+                    <span data-piece="f7"></span><span data-piece="f8"></span><span data-piece="f9"></span>
+                </div>
+                <div class="preview-face preview-right">
+                    <span data-piece="r1"></span><span data-piece="r2"></span><span data-piece="r3"></span>
+                    <span data-piece="r4"></span><span data-piece="r5"></span><span data-piece="r6"></span>
+                    <span data-piece="r7"></span><span data-piece="r8"></span><span data-piece="r9"></span>
+                </div>
+                <div class="preview-face preview-back">
+                    <span data-piece="b1"></span><span data-piece="b2"></span><span data-piece="b3"></span>
+                    <span data-piece="b4"></span><span data-piece="b5"></span><span data-piece="b6"></span>
+                    <span data-piece="b7"></span><span data-piece="b8"></span><span data-piece="b9"></span>
+                </div>
+                <div class="preview-face preview-down">
+                    <span data-piece="d1"></span><span data-piece="d2"></span><span data-piece="d3"></span>
+                    <span data-piece="d4"></span><span data-piece="d5"></span><span data-piece="d6"></span>
+                    <span data-piece="d7"></span><span data-piece="d8"></span><span data-piece="d9"></span>
+                </div>
+            </div>
+            <div id="preview-note" class="preview-note hide">Preview is available for 2x2 and 3x3 scrambles.</div>
+        </section>
+        <section class="hud-panel solver-panel">
+            <div class="panel-title">Solver</div>
+            <div id="solver-output" class="solver-output">Load a scramble to get started.</div>
+            <div class="solver-actions">
+                <button type="button" id="solver-validate">Validate Scramble</button>
+                <button type="button" id="solver-hint">Get Hint</button>
+            </div>
+        </section>
         <section class="hud-panel timer-panel">
             <div class="panel-title">Timer</div>
-            <div id="timer" class="timer-display">0.000</div>
+            <div id="timer" class="timer-display" aria-live="polite">0.000</div>
             <div id="inspection" class="inspection-display hide">Inspection 15.0s</div>
             <div class="timer-controls">
                 <button type="button" class="timer-toggle">Start / Stop (Space)</button>
@@ -42,6 +86,10 @@
             <label class="setting-row">
                 <span>Inspection</span>
                 <input type="checkbox" id="inspection-toggle">
+            </label>
+            <label class="setting-row">
+                <span>Sounds</span>
+                <input type="checkbox" id="sound-toggle">
             </label>
             <label class="setting-row">
                 <span>Session</span>
@@ -56,6 +104,11 @@
                 <span>Cube</span>
                 <select id="cube-select"></select>
             </label>
+            <div class="cube-meta">
+                <span id="cube-scramble">Scramble: -- moves</span>
+                <span id="cube-inspection">Inspection: --s</span>
+            </div>
+            <button type="button" id="tutorial-open" class="tutorial-open">Open Tutorial</button>
             <label class="setting-row">
                 <span>Precision</span>
                 <select id="precision-select">
@@ -461,6 +514,17 @@
                 </div>
             </div>
 
+            <div class="leaderboard-panel">
+                <div class="panel-title">Leaderboard</div>
+                <div class="leaderboard-controls">
+                    <select id="leaderboard-cube"></select>
+                    <button type="button" id="leaderboard-submit">Submit</button>
+                </div>
+                <div id="leaderboard-empty" class="leaderboard-empty">No records yet.</div>
+                <ol id="leaderboard-list" class="leaderboard-list"></ol>
+                <div class="leaderboard-note">Submissions open a GitHub issue with your details.</div>
+            </div>
+
             <div class="history-panel">
                 <div class="panel-title">Solve History</div>
                 <div id="solve-empty" class="solve-empty">No solves yet.</div>
@@ -495,6 +559,46 @@
         <div class="install-actions">
             <button type="button" id="install-button">Install</button>
             <button type="button" id="install-dismiss" class="install-dismiss" aria-label="Dismiss">×</button>
+        </div>
+    </div>
+    <div id="onboarding" class="onboarding hide" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+        <div class="onboarding-card">
+            <div id="onboarding-title" class="onboarding-title">Welcome</div>
+            <div id="onboarding-text" class="onboarding-text"></div>
+            <div class="onboarding-actions">
+                <button type="button" id="onboarding-skip">Skip</button>
+                <button type="button" id="onboarding-next">Next</button>
+            </div>
+        </div>
+    </div>
+    <div id="tutorial-modal" class="tutorial-modal hide" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+        <div class="tutorial-card">
+            <div class="tutorial-header">
+                <div>
+                    <div id="tutorial-title" class="tutorial-title">Tutorial</div>
+                    <div id="tutorial-step" class="tutorial-step">Step 1</div>
+                </div>
+                <button type="button" id="tutorial-close" class="tutorial-close" aria-label="Close tutorial">×</button>
+            </div>
+            <div class="tutorial-body">
+                <div class="tutorial-sidebar">
+                    <div id="tutorial-list" class="tutorial-list"></div>
+                </div>
+                <div class="tutorial-content">
+                    <div id="tutorial-step-title" class="tutorial-step-title"></div>
+                    <div id="tutorial-step-text" class="tutorial-step-text"></div>
+                    <div class="tutorial-moves">
+                        <span class="tutorial-moves-label">Moves</span>
+                        <span id="tutorial-moves" class="tutorial-moves-text"></span>
+                        <button type="button" id="tutorial-play" class="tutorial-play">Play demo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="tutorial-footer">
+                <button type="button" id="tutorial-prev">Prev</button>
+                <button type="button" id="tutorial-next">Next</button>
+                <button type="button" id="tutorial-complete">Mark Lesson Complete</button>
+            </div>
         </div>
     </div>
     <script type="module" src="src/js/main.js"></script>

@@ -1,0 +1,24 @@
+{
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "records": {
+    "2x2": [
+      {
+        "name": "Demo Solver",
+        "timeMs": 2230,
+        "scramble": "R U R' U' F2",
+        "date": "2025-12-20",
+        "verified": true
+      }
+    ],
+    "3x3": [
+      {
+        "name": "Demo Solver",
+        "timeMs": 8420,
+        "scramble": "R U R' U' F2 D2",
+        "date": "2025-12-20",
+        "verified": true
+      }
+    ],
+    "4x4": []
+  }
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "rubiks-cube-v1";
+const CACHE_NAME = "rubiks-cube-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,8 @@ const ASSETS = [
   "./assets/flat.png",
   "./assets/icons/icon-192.svg",
   "./assets/icons/icon-512.svg",
+  "./data/leaderboard.json",
+  "./data/tutorial.json",
   "./src/css/main.css",
   "./src/css/variables.css",
   "./src/css/components/parts.css",
@@ -29,7 +31,15 @@ const ASSETS = [
   "./src/js/charts.js",
   "./src/js/stats.js",
   "./src/js/sessions.js",
-  "./src/js/io.js"
+  "./src/js/io.js",
+  "./src/js/pwa.js",
+  "./src/js/preview.js",
+  "./src/js/leaderboard.js",
+  "./src/js/tutorial.js",
+  "./src/js/onboarding.js",
+  "./src/js/sound.js",
+  "./src/js/solver.js",
+  "./src/wasm/solver-loader.js"
 ];
 
 self.addEventListener("install", (event) => {

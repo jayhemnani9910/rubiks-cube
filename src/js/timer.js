@@ -1,8 +1,7 @@
 import { addSolve, getState, updateSettings } from "./storage.js";
 import { createId, formatTime } from "./utils.js";
-
-const INSPECTION_LIMIT_SECONDS = 15;
-const INSPECTION_DNF_SECONDS = 17;
+import { getCubeConfig } from "./cubes.js";
+import { playStartSound, playStopSound } from "./sound.js";
 
 let timerRunning = false;
 let timerStart = 0;
@@ -54,12 +53,14 @@ const updateInspectionDisplay = () => {
   }
 
   const elapsedSeconds = (performance.now() - inspectionStart) / 1000;
-  const remaining = INSPECTION_LIMIT_SECONDS - elapsedSeconds;
+  const inspectionSeconds =
+    getCubeConfig(getState().settings.cubeType).inspectionSeconds ?? 15;
+  const remaining = inspectionSeconds - elapsedSeconds;
 
   if (remaining >= 0) {
     display.textContent = `Inspection ${remaining.toFixed(1)}s`;
     display.classList.remove("inspection-over");
-  } else if (elapsedSeconds < INSPECTION_DNF_SECONDS) {
+  } else if (elapsedSeconds < inspectionSeconds + 2) {
     display.textContent = `+2 (${Math.abs(remaining).toFixed(1)}s)`;
     display.classList.add("inspection-over");
   } else {
@@ -85,10 +86,12 @@ const stopInspection = () => {
   }
 
   const elapsedSeconds = (performance.now() - inspectionStart) / 1000;
+  const inspectionSeconds =
+    getCubeConfig(getState().settings.cubeType).inspectionSeconds ?? 15;
   inspectionPenalty = "ok";
-  if (elapsedSeconds > INSPECTION_DNF_SECONDS) {
+  if (elapsedSeconds > inspectionSeconds + 2) {
     inspectionPenalty = "dnf";
-  } else if (elapsedSeconds > INSPECTION_LIMIT_SECONDS) {
+  } else if (elapsedSeconds > inspectionSeconds) {
     inspectionPenalty = "plus2";
   }
 
@@ -109,6 +112,7 @@ export const startTimer = () => {
   timerRunning = true;
   timerStart = performance.now() - elapsed;
   timerFrame = requestAnimationFrame(animateTimer);
+  playStartSound();
 };
 
 export const stopTimer = () => {
@@ -117,6 +121,7 @@ export const stopTimer = () => {
     cancelAnimationFrame(timerFrame);
   }
   updateTimerDisplayWithPenalty(inspectionPenalty);
+  playStopSound();
 
   const scramble = document.getElementById("seq")?.textContent?.trim();
   const solve = {
