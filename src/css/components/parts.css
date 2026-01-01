@@ -1,0 +1,31 @@
+.part {
+  width: var(--part-size);
+  height: var(--part-size);
+  border: var(--part-border-width) solid var(--part-border-color);
+  position: absolute;
+  border-radius: 0.01px;
+}
+
+.front > div {
+  background-color: var(--face-front);
+}
+
+.back > div {
+  background-color: var(--face-back);
+}
+
+.up > div {
+  background-color: var(--face-up);
+}
+
+.down > div {
+  background-color: var(--face-down);
+}
+
+.right > div {
+  background-color: var(--face-right);
+}
+
+.left > div {
+  background-color: var(--face-left);
+}

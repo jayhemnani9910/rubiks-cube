@@ -1,0 +1,35 @@
+:root {
+  --font-base: Arial, Helvetica, sans-serif;
+  --color-text: #ffffff;
+  --color-muted: rgb(160, 160, 160);
+  --color-bg-start: rgb(80, 80, 80);
+  --color-bg-end: rgb(0, 0, 0);
+  --color-border: #ffffff;
+  --color-button-bg: transparent;
+  --color-button-text: #ffffff;
+  --color-panel-bg: rgba(0, 0, 0, 0.35);
+  --color-panel-bg-soft: rgba(0, 0, 0, 0.2);
+  --color-hover-bg: rgba(255, 255, 255, 0.08);
+  --part-border-color: #000000;
+  --part-border-width: 2px;
+  --part-size: 26px;
+  --face-front: rgb(0, 128, 0);
+  --face-back: rgb(0, 0, 255);
+  --face-up: rgb(255, 255, 255);
+  --face-down: rgb(255, 255, 0);
+  --face-right: rgb(255, 0, 0);
+  --face-left: rgb(255, 140, 0);
+}
+
+:root[data-theme="light"] {
+  --color-text: #1f1f1f;
+  --color-muted: #4a4a4a;
+  --color-bg-start: #f4f4f4;
+  --color-bg-end: #d9d9d9;
+  --color-border: #1f1f1f;
+  --color-button-bg: rgba(255, 255, 255, 0.6);
+  --color-button-text: #1f1f1f;
+  --color-panel-bg: rgba(255, 255, 255, 0.75);
+  --color-panel-bg-soft: rgba(255, 255, 255, 0.6);
+  --color-hover-bg: rgba(0, 0, 0, 0.08);
+}

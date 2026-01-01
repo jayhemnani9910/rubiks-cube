@@ -1,0 +1,21 @@
+{
+  "name": "Rubik's Cube Visualizer",
+  "short_name": "Rubik's Cube",
+  "description": "Rubik's Cube visualizer with timer, scrambles, stats, and sessions.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "assets/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
