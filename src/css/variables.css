@@ -9,6 +9,7 @@
   --color-button-text: #ffffff;
   --color-panel-bg: rgba(0, 0, 0, 0.35);
   --color-panel-bg-soft: rgba(0, 0, 0, 0.2);
+  --color-modal-bg: #0f0f0f;
   --color-hover-bg: rgba(255, 255, 255, 0.08);
   --part-border-color: #000000;
   --part-border-width: 2px;
@@ -31,5 +32,6 @@
   --color-button-text: #1f1f1f;
   --color-panel-bg: rgba(255, 255, 255, 0.75);
   --color-panel-bg-soft: rgba(255, 255, 255, 0.6);
+  --color-modal-bg: #ffffff;
   --color-hover-bg: rgba(0, 0, 0, 0.08);
 }

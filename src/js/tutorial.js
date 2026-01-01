@@ -14,6 +14,7 @@ const playButton = () => document.getElementById("tutorial-play");
 const prevButton = () => document.getElementById("tutorial-prev");
 const nextButton = () => document.getElementById("tutorial-next");
 const completeButton = () => document.getElementById("tutorial-complete");
+const onboarding = () => document.getElementById("onboarding");
 
 let lessons = [];
 let lessonIndex = 0;
@@ -117,6 +118,11 @@ const openTutorial = () => {
   const overlay = modal();
   if (!overlay) {
     return;
+  }
+  const onboardingOverlay = onboarding();
+  if (onboardingOverlay && !onboardingOverlay.classList.contains("hide")) {
+    onboardingOverlay.classList.add("hide");
+    updateTutorial({ onboardingSeen: true });
   }
   overlay.classList.remove("hide");
   renderTutorial();
