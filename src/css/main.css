@@ -40,6 +40,7 @@ body {
   opacity: 0;
   visibility: hidden;
   display: grid;
+  pointer-events: none;
 }
 
 .splash-card {
@@ -123,6 +124,7 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 
 .hud-panel,
@@ -164,9 +166,9 @@ a {
 .preview-net {
   --preview-size: 16px;
   display: grid;
-  grid-template-columns: repeat(4, var(--preview-size));
-  grid-template-rows: repeat(3, var(--preview-size));
-  gap: 4px;
+  grid-template-columns: repeat(4, max-content);
+  grid-template-rows: repeat(3, max-content);
+  gap: 8px;
   justify-content: center;
   margin: 0.4rem auto 0;
 }
