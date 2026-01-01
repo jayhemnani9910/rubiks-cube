@@ -822,7 +822,7 @@ select {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .tutorial-header {
@@ -890,6 +890,7 @@ select {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+  overflow-y: auto;
 }
 
 .tutorial-step-title {

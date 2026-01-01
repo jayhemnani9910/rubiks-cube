@@ -1,4 +1,4 @@
-const CACHE_NAME = "rubiks-cube-v5";
+const CACHE_NAME = "rubiks-cube-v6";
 const ASSETS = [
   "./",
   "./index.html",

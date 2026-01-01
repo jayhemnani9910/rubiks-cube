@@ -130,6 +130,23 @@ const closeTutorial = () => {
   updateTutorial({ lastLessonId: lessons[lessonIndex]?.id ?? null });
 };
 
+const closeOnBackdrop = (event) => {
+  if (event.target === modal()) {
+    closeTutorial();
+  }
+};
+
+const closeOnEscape = (event) => {
+  if (event.key !== "Escape") {
+    return;
+  }
+  const overlay = modal();
+  if (!overlay || overlay.classList.contains("hide")) {
+    return;
+  }
+  closeTutorial();
+};
+
 const loadTutorial = async () => {
   try {
     const response = await fetch("./data/tutorial.json", { cache: "no-store" });
@@ -157,6 +174,8 @@ export const initTutorial = async () => {
 
   openButton()?.addEventListener("click", openTutorial);
   closeButton()?.addEventListener("click", closeTutorial);
+  modal()?.addEventListener("click", closeOnBackdrop);
+  document.addEventListener("keydown", closeOnEscape);
 
   prevButton()?.addEventListener("click", () => {
     if (stepIndex > 0) {
@@ -191,6 +210,7 @@ export const initTutorial = async () => {
       },
     });
     renderLessonList();
+    closeTutorial();
   });
 
   playButton()?.addEventListener("click", playMoves);
