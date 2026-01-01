@@ -1,4 +1,4 @@
-const CACHE_NAME = "rubiks-cube-v7";
+const CACHE_NAME = "rubiks-cube-v8";
 const ASSETS = [
   "./",
   "./index.html",
@@ -29,6 +29,27 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith("/sw.js") || url.pathname.endsWith("sw.js")) {
+    return;
+  }
+
+  const accepts = event.request.headers.get("accept") || "";
+  const isHtml = event.request.mode === "navigate" || accepts.includes("text/html");
+
+  if (isHtml) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", responseClone));
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
     return;
   }
 

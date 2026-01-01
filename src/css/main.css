@@ -775,6 +775,7 @@ select {
   place-items: center;
   z-index: 950;
   padding: 1.5rem;
+  pointer-events: auto;
 }
 
 .onboarding {
@@ -823,6 +824,8 @@ select {
   display: flex;
   flex-direction: column;
   overflow: auto;
+  position: relative;
+  pointer-events: auto;
 }
 
 .tutorial-header {

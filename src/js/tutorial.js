@@ -21,6 +21,27 @@ let lessonIndex = 0;
 let stepIndex = 0;
 let demoRunning = false;
 
+const setPlayState = (running) => {
+  const button = playButton();
+  if (!button) {
+    return;
+  }
+  button.disabled = running;
+  button.textContent = running ? "Playing..." : "Play demo";
+};
+
+const flashComplete = () => {
+  const button = completeButton();
+  if (!button) {
+    return;
+  }
+  const label = button.textContent;
+  button.textContent = "Completed";
+  setTimeout(() => {
+    button.textContent = label;
+  }, 800);
+};
+
 const parseMoves = (moves) =>
   moves
     .trim()
@@ -63,12 +84,14 @@ const playMoves = async () => {
   }
 
   demoRunning = true;
+  setPlayState(true);
   const tokens = parseMoves(moves);
   for (const token of tokens) {
     runMove(token);
     await new Promise((resolve) => setTimeout(resolve, 350));
   }
   demoRunning = false;
+  setPlayState(false);
 };
 
 const renderLessonList = () => {
@@ -133,7 +156,11 @@ const closeTutorial = () => {
   if (overlay) {
     overlay.classList.add("hide");
   }
-  updateTutorial({ lastLessonId: lessons[lessonIndex]?.id ?? null });
+  try {
+    updateTutorial({ lastLessonId: lessons[lessonIndex]?.id ?? null });
+  } catch (error) {
+    console.warn("Failed to persist tutorial state.", error);
+  }
 };
 
 const closeOnBackdrop = (event) => {
@@ -209,15 +236,21 @@ export const initTutorial = async () => {
     if (!lesson) {
       return;
     }
-    updateTutorial({
-      completed: {
-        ...getState().tutorial.completed,
-        [lesson.id]: true,
-      },
-    });
+    try {
+      updateTutorial({
+        completed: {
+          ...getState().tutorial.completed,
+          [lesson.id]: true,
+        },
+      });
+    } catch (error) {
+      console.warn("Failed to persist tutorial completion.", error);
+    }
     renderLessonList();
+    flashComplete();
     closeTutorial();
   });
 
   playButton()?.addEventListener("click", playMoves);
+  setPlayState(false);
 };
