@@ -49,8 +49,9 @@ npm run dev
 ## Project Structure
 - `src/js/`: ES modules for cube state, input handling, timer, scrambles, settings, stats, charts, sessions, storage, IO, tutorial, and PWA
 - `src/css/`: main CSS entry point, theme variables, and component styles
-- `assets/`: screenshots and images
-- `data/`: tutorial content + leaderboard data
+- `assets/`: screenshots and images (repo/docs)
+- `public/`: static files for PWA + GitHub Pages (manifest, sw, icons, data)
+- `data/`: source JSON for leaderboard + tutorial content
 - `scripts/`: helper generator (`cube.cpp`, `cubeinput.txt`)
 
 ## Notes

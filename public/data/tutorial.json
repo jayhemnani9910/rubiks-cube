@@ -1,0 +1,57 @@
+{
+  "lessons": [
+    {
+      "id": "basics",
+      "title": "Cube Basics",
+      "steps": [
+        {
+          "title": "Notation",
+          "text": "Face turns use letters: R L U D F B. Add ' for counter-clockwise and 2 for double turns.",
+          "moves": "R U R'"
+        },
+        {
+          "title": "Grip",
+          "text": "Keep the cube steady and turn with your index finger for U moves.",
+          "moves": "U U'"
+        },
+        {
+          "title": "Reset",
+          "text": "Use Z to reset the cube at any time.",
+          "moves": "z"
+        }
+      ]
+    },
+    {
+      "id": "beginner-cross",
+      "title": "Beginner Cross",
+      "steps": [
+        {
+          "title": "Make a Cross",
+          "text": "Match edge pieces to the center to form a cross on one face.",
+          "moves": "F R U R' U' F'"
+        },
+        {
+          "title": "Align Edges",
+          "text": "Rotate the top layer to match side centers before inserting.",
+          "moves": "U R U' R'"
+        }
+      ]
+    },
+    {
+      "id": "f2l",
+      "title": "First Two Layers",
+      "steps": [
+        {
+          "title": "Pairing",
+          "text": "Pair a corner with its edge in the top layer.",
+          "moves": "U R U' R'"
+        },
+        {
+          "title": "Insert Pair",
+          "text": "Insert the pair into the slot to complete both layers.",
+          "moves": "R U R'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "rubiks-cube-v3";
+const CACHE_NAME = "rubiks-cube-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,36 +10,7 @@ const ASSETS = [
   "./assets/icons/icon-192.svg",
   "./assets/icons/icon-512.svg",
   "./data/leaderboard.json",
-  "./data/tutorial.json",
-  "./src/css/main.css",
-  "./src/css/variables.css",
-  "./src/css/components/parts.css",
-  "./src/css/components/cube-3d.css",
-  "./src/css/components/cube-2d.css",
-  "./src/css/components/animations.css",
-  "./src/js/main.js",
-  "./src/js/state.js",
-  "./src/js/cube.js",
-  "./src/js/scramble.js",
-  "./src/js/input.js",
-  "./src/js/storage.js",
-  "./src/js/utils.js",
-  "./src/js/history.js",
-  "./src/js/timer.js",
-  "./src/js/settings.js",
-  "./src/js/cubes.js",
-  "./src/js/charts.js",
-  "./src/js/stats.js",
-  "./src/js/sessions.js",
-  "./src/js/io.js",
-  "./src/js/pwa.js",
-  "./src/js/preview.js",
-  "./src/js/leaderboard.js",
-  "./src/js/tutorial.js",
-  "./src/js/onboarding.js",
-  "./src/js/sound.js",
-  "./src/js/solver.js",
-  "./src/wasm/solver-loader.js"
+  "./data/tutorial.json"
 ];
 
 self.addEventListener("install", (event) => {
