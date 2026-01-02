@@ -50,3 +50,11 @@
     --part-border-width: 1px;
   }
 }
+
+/* Force tutorial modal hidden by default - only show when .hide is removed */
+#tutorial-modal.hide {
+  display: none !important;
+}
+#onboarding.hide {
+  display: none !important;
+}
