@@ -16,22 +16,22 @@ let currentFaceConfig = null;
 
 // Configuration
 const CONFIG = {
-  pieceSize: 0.9,        // Piece size (slightly smaller for visible gaps)
-  pieceGap: 0.1,         // Gap between pieces
-  cornerRadius: 0.08,    // Rounded corner radius
-  animationDuration: 400, // Faster, snappier animations
+  pieceSize: 0.88,       // Slightly smaller for more visible gaps
+  pieceGap: 0.12,        // Gap between pieces
+  cornerRadius: 0.06,    // Subtle rounded corners
+  animationDuration: 350, // Snappy animations
   baseCameraDistance: 5,
 };
 
-// Face colors (vibrant, modern palette)
+// Face colors (saturated, classic Rubik's cube palette)
 const COLORS = {
-  right: 0xef4444,   // Red (brighter)
-  left: 0xf97316,    // Orange
-  up: 0xffffff,      // White
-  down: 0xfde047,    // Yellow (brighter)
-  front: 0x22c55e,   // Green (brighter)
-  back: 0x3b82f6,    // Blue (brighter)
-  inner: 0x1a1a1a,   // Dark inner faces
+  right: 0xdc2626,   // Red (classic)
+  left: 0xea580c,    // Orange (warm)
+  up: 0xfafafa,      // White (slightly off-white)
+  down: 0xfbbf24,    // Yellow (golden)
+  front: 0x16a34a,   // Green (rich)
+  back: 0x2563eb,    // Blue (vivid)
+  inner: 0x0a0a0a,   // Near-black (like real cube plastic)
 };
 
 /**
@@ -118,32 +118,33 @@ const createCubie = (x, y, z, size) => {
   const isFrontFace = Math.abs(z - half) < 0.01;
   const isBackFace = Math.abs(z + half) < 0.01;
 
-  // Create materials with better visual properties
-  const createMaterial = (color) => new THREE.MeshStandardMaterial({
+  // Create materials with realistic plastic sticker look
+  const createMaterial = (color, isSticker = true) => new THREE.MeshStandardMaterial({
     color: color,
-    roughness: 0.35,      // Slightly glossy plastic
-    metalness: 0.0,       // Non-metallic
+    roughness: isSticker ? 0.25 : 0.5,   // Stickers are glossier
+    metalness: 0.0,                       // Non-metallic plastic
     flatShading: false,
+    envMapIntensity: 0.3,                 // Subtle reflection
   });
 
   const materials = [
-    createMaterial(isRightFace ? COLORS.right : COLORS.inner),  // +X
-    createMaterial(isLeftFace ? COLORS.left : COLORS.inner),    // -X
-    createMaterial(isUpFace ? COLORS.up : COLORS.inner),        // +Y
-    createMaterial(isDownFace ? COLORS.down : COLORS.inner),    // -Y
-    createMaterial(isFrontFace ? COLORS.front : COLORS.inner),  // +Z
-    createMaterial(isBackFace ? COLORS.back : COLORS.inner),    // -Z
+    createMaterial(isRightFace ? COLORS.right : COLORS.inner, isRightFace),  // +X
+    createMaterial(isLeftFace ? COLORS.left : COLORS.inner, isLeftFace),     // -X
+    createMaterial(isUpFace ? COLORS.up : COLORS.inner, isUpFace),           // +Y
+    createMaterial(isDownFace ? COLORS.down : COLORS.inner, isDownFace),     // -Y
+    createMaterial(isFrontFace ? COLORS.front : COLORS.inner, isFrontFace),  // +Z
+    createMaterial(isBackFace ? COLORS.back : COLORS.inner, isBackFace),     // -Z
   ];
 
   const mesh = new THREE.Mesh(geometry, materials);
 
-  // Create white edge outline for enhanced look
-  const edgeGeometry = new THREE.EdgesGeometry(geometry, 15); // threshold angle
+  // Create subtle dark edge outline (like black plastic borders on real cubes)
+  const edgeGeometry = new THREE.EdgesGeometry(geometry, 20); // higher threshold = fewer edges
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: 0xffffff,
-    linewidth: 2,
+    color: 0x111111,      // Very dark gray (almost black)
+    linewidth: 1,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.6,         // Subtle, not harsh
   });
   const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
 

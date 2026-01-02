@@ -1,4 +1,4 @@
-const CACHE_NAME = "rubiks-cube-v15";
+const CACHE_NAME = "rubiks-cube-v16";
 // Static assets that don't change (images, icons)
 const STATIC_ASSETS = [
   "./",
