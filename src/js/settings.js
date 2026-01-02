@@ -69,12 +69,10 @@ const applyTheme = (theme, customTheme) => {
   const scrambleEl = document.getElementById("seq");
   const currentScramble = scrambleEl?.textContent;
 
-  document.documentElement.dataset.theme = theme;
-  if (theme === "custom") {
-    applyCustomTheme(customTheme);
-  } else {
-    clearCustomTheme();
-  }
+  // Migrate legacy "custom" theme to "dark"
+  const effectiveTheme = theme === "custom" ? "dark" : theme;
+  document.documentElement.dataset.theme = effectiveTheme;
+  clearCustomTheme();
 
   resetCube();
 
@@ -149,16 +147,14 @@ export const initSettings = () => {
 
   const theme = themeSelect();
   if (theme) {
-    theme.value = settings.theme;
+    // Migrate legacy "custom" theme to "dark"
+    const effectiveTheme = settings.theme === "custom" ? "dark" : settings.theme;
+    theme.value = effectiveTheme;
     theme.addEventListener("change", (event) => {
       const value = event.target.value;
       updateSettings({ theme: value });
-      applyTheme(value, getState().settings.customTheme);
+      applyTheme(value, {});
       renderCharts();
-      const panel = customPanel();
-      if (panel) {
-        panel.classList.toggle("hide", value !== "custom");
-      }
     });
   }
 
@@ -204,11 +200,7 @@ export const initSettings = () => {
     });
   });
 
-  applyTheme(settings.theme, settings.customTheme);
-  const panel = customPanel();
-  if (panel) {
-    panel.classList.toggle("hide", settings.theme !== "custom");
-  }
+  applyTheme(settings.theme, {});
   updateCubeNote(settings.cubeType ?? "3x3");
   updateCubeLabel(settings.cubeType ?? "3x3");
   updateCubeMeta(settings.cubeType ?? "3x3");

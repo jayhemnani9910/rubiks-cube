@@ -153,11 +153,16 @@ export const renderStats = () => {
 
   const precision = settings.precision;
   const values = {
+    // Compact stats bar
     "stat-best": formatStat(best, precision),
-    "stat-worst": formatStat(worst, precision),
-    "stat-mean": formatStat(mean, precision),
     "stat-ao5": formatStat(ao5, precision),
     "stat-ao12": formatStat(ao12, precision),
+    // Full stats panel
+    "stat-best-full": formatStat(best, precision),
+    "stat-worst": formatStat(worst, precision),
+    "stat-mean": formatStat(mean, precision),
+    "stat-ao5-full": formatStat(ao5, precision),
+    "stat-ao12-full": formatStat(ao12, precision),
     "stat-ao100": formatStat(ao100, precision),
   };
 

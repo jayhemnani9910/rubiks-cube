@@ -21,6 +21,7 @@ import { initLeaderboard } from "./leaderboard.js";
 import { initTutorial } from "./tutorial.js";
 import { initOnboarding } from "./onboarding.js";
 import { initSolver } from "./solver.js";
+import { initPanels } from "./panels.js";
 
 const CUBE_TURN_INDEX = {
   left: 0,
@@ -92,6 +93,7 @@ initLeaderboard();
 initTutorial();
 initOnboarding();
 initSolver();
+initPanels();
 renderSolves();
 renderStats();
 initCharts();
