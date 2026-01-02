@@ -4,7 +4,7 @@ import { renderSolves } from "./history.js";
 import { renderStats } from "./stats.js";
 import { renderCharts } from "./charts.js";
 import { refreshLeaderboard } from "./leaderboard.js";
-import { resetCube } from "./cube.js";
+import { resetCube, rebuildThreeCube } from "./cube.js";
 import { generateScramble } from "./scramble.js";
 import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
 import { rebuildPreview } from "./preview.js";
@@ -172,6 +172,7 @@ export const initSettings = () => {
       const value = event.target.value;
       updateSettings({ cubeType: value });
       rebuildPreview(); // Rebuild preview for new cube size
+      rebuildThreeCube(); // Rebuild 3D cube for new size
       resetCube();
       generateScramble();
       renderSolves();

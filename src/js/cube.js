@@ -9,7 +9,8 @@ import {
   getFaceColors,
 } from "./state.js";
 import { syncPreview } from "./preview.js";
-import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble } from "./three-cube/ThreeCube.js";
+import { getCubeSize } from "./dynamic-cube.js";
+import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble, rebuildCube } from "./three-cube/ThreeCube.js";
 
 // Three.js cube instance
 let threeCube = null;
@@ -32,8 +33,9 @@ export const initCube = async () => {
   }
 
   try {
-    threeCube = await initThreeCube(container);
-    console.log("Three.js cube initialized successfully");
+    const size = getCubeSize();
+    threeCube = await initThreeCube(container, size);
+    console.log(`Three.js ${size}x${size} cube initialized successfully`);
   } catch (error) {
     console.error("Failed to initialize Three.js cube:", error);
     // Show legacy CSS cube as fallback
@@ -176,5 +178,16 @@ export const resetCube = () => {
 export const applyScrambleToThreeCube = (sequence) => {
   if (threeCube) {
     threeApplyScramble(sequence);
+  }
+};
+
+/**
+ * Rebuild the Three.js cube with a new size
+ */
+export const rebuildThreeCube = () => {
+  if (threeCube) {
+    const size = getCubeSize();
+    rebuildCube(size);
+    console.log(`Three.js cube rebuilt as ${size}x${size}`);
   }
 };

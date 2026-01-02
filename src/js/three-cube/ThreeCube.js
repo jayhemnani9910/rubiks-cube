@@ -1,6 +1,6 @@
 /**
  * Three.js Rubik's Cube Implementation
- * Provides realistic 3D cube with smooth face rotation animations
+ * Supports dynamic cube sizes (2x2 to 7x7) with smooth animations
  */
 
 // Import Three.js from CDN
@@ -11,35 +11,42 @@ let scene, camera, renderer, cubeGroup;
 let pieces = [];
 let isAnimating = false;
 let animationQueue = [];
+let currentSize = 3;
+let currentFaceConfig = null;
 
 // Configuration
 const CONFIG = {
-  pieceSize: 0.95,
-  pieceGap: 0.05,
-  pieceRounding: 0.08,
-  animationDuration: 500,
-  cameraDistance: 6,
+  pieceSize: 0.9,        // Piece size (slightly smaller for visible gaps)
+  pieceGap: 0.1,         // Gap between pieces
+  cornerRadius: 0.08,    // Rounded corner radius
+  animationDuration: 400, // Faster, snappier animations
+  baseCameraDistance: 5,
 };
 
-// Face colors (matching CSS theme)
+// Face colors (vibrant, modern palette)
 const COLORS = {
-  right: 0xff0000,   // Red
-  left: 0xff8c00,    // Orange
+  right: 0xef4444,   // Red (brighter)
+  left: 0xf97316,    // Orange
   up: 0xffffff,      // White
-  down: 0xffff00,    // Yellow
-  front: 0x008000,   // Green
-  back: 0x0000ff,    // Blue
-  inner: 0x111111,   // Inner faces (dark)
+  down: 0xfde047,    // Yellow (brighter)
+  front: 0x22c55e,   // Green (brighter)
+  back: 0x3b82f6,    // Blue (brighter)
+  inner: 0x1a1a1a,   // Dark inner faces
 };
 
-// Face to axis mapping
-const FACE_CONFIG = {
-  r: { axis: 'x', layer: 1, direction: -1 },
-  l: { axis: 'x', layer: -1, direction: 1 },
-  u: { axis: 'y', layer: 1, direction: -1 },
-  d: { axis: 'y', layer: -1, direction: 1 },
-  f: { axis: 'z', layer: 1, direction: -1 },
-  b: { axis: 'z', layer: -1, direction: 1 },
+/**
+ * Get face configuration for a given cube size
+ */
+const getFaceConfig = (size) => {
+  const half = (size - 1) / 2;
+  return {
+    r: { axis: 'x', layer: half, direction: -1 },
+    l: { axis: 'x', layer: -half, direction: 1 },
+    u: { axis: 'y', layer: half, direction: -1 },
+    d: { axis: 'y', layer: -half, direction: 1 },
+    f: { axis: 'z', layer: half, direction: -1 },
+    b: { axis: 'z', layer: -half, direction: 1 },
+  };
 };
 
 /**
@@ -52,28 +59,40 @@ const loadThree = async () => {
 };
 
 /**
- * Create a rounded box geometry (cubie)
+ * Create a rounded box geometry for better visuals
  */
-const createRoundedBox = (size, radius, segments = 4) => {
+const createRoundedBox = (size, radius, segments = 3) => {
   const geometry = new THREE.BoxGeometry(size, size, size, segments, segments, segments);
-
   const positions = geometry.attributes.position;
   const vector = new THREE.Vector3();
+  const halfSize = size / 2;
 
   for (let i = 0; i < positions.count; i++) {
     vector.fromBufferAttribute(positions, i);
 
-    // Round the corners
     const x = Math.abs(vector.x);
     const y = Math.abs(vector.y);
     const z = Math.abs(vector.z);
-    const max = size / 2;
 
-    if (x > max - radius && y > max - radius && z > max - radius) {
-      const nx = Math.sign(vector.x) * (max - radius + radius * vector.x / x / Math.sqrt((vector.x/x)**2 + (vector.y/y)**2 + (vector.z/z)**2));
-      const ny = Math.sign(vector.y) * (max - radius + radius * vector.y / y / Math.sqrt((vector.x/x)**2 + (vector.y/y)**2 + (vector.z/z)**2));
-      const nz = Math.sign(vector.z) * (max - radius + radius * vector.z / z / Math.sqrt((vector.x/x)**2 + (vector.y/y)**2 + (vector.z/z)**2));
-      positions.setXYZ(i, nx || vector.x, ny || vector.y, nz || vector.z);
+    // Round corners where all three coordinates are near the edge
+    if (x > halfSize - radius && y > halfSize - radius && z > halfSize - radius) {
+      const cornerX = Math.sign(vector.x) * (halfSize - radius);
+      const cornerY = Math.sign(vector.y) * (halfSize - radius);
+      const cornerZ = Math.sign(vector.z) * (halfSize - radius);
+
+      const dx = vector.x - cornerX;
+      const dy = vector.y - cornerY;
+      const dz = vector.z - cornerZ;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      if (len > 0) {
+        const scale = radius / len;
+        positions.setXYZ(i,
+          cornerX + dx * scale,
+          cornerY + dy * scale,
+          cornerZ + dz * scale
+        );
+      }
     }
   }
 
@@ -84,18 +103,36 @@ const createRoundedBox = (size, radius, segments = 4) => {
 /**
  * Create a single cubie with colored faces
  */
-const createCubie = (x, y, z) => {
-  const size = CONFIG.pieceSize;
-  const geometry = new THREE.BoxGeometry(size, size, size);
+const createCubie = (x, y, z, size) => {
+  const half = (size - 1) / 2;
+  const pieceSize = CONFIG.pieceSize;
 
-  // Determine which faces should have colors
+  // Use rounded box for better visuals
+  const geometry = createRoundedBox(pieceSize, CONFIG.cornerRadius);
+
+  // Determine which faces should have colors based on position
+  const isRightFace = Math.abs(x - half) < 0.01;
+  const isLeftFace = Math.abs(x + half) < 0.01;
+  const isUpFace = Math.abs(y - half) < 0.01;
+  const isDownFace = Math.abs(y + half) < 0.01;
+  const isFrontFace = Math.abs(z - half) < 0.01;
+  const isBackFace = Math.abs(z + half) < 0.01;
+
+  // Create materials with better visual properties
+  const createMaterial = (color) => new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.35,      // Slightly glossy plastic
+    metalness: 0.0,       // Non-metallic
+    flatShading: false,
+  });
+
   const materials = [
-    new THREE.MeshStandardMaterial({ color: x === 1 ? COLORS.right : COLORS.inner }), // +X (right)
-    new THREE.MeshStandardMaterial({ color: x === -1 ? COLORS.left : COLORS.inner }), // -X (left)
-    new THREE.MeshStandardMaterial({ color: y === 1 ? COLORS.up : COLORS.inner }),    // +Y (up)
-    new THREE.MeshStandardMaterial({ color: y === -1 ? COLORS.down : COLORS.inner }), // -Y (down)
-    new THREE.MeshStandardMaterial({ color: z === 1 ? COLORS.front : COLORS.inner }), // +Z (front)
-    new THREE.MeshStandardMaterial({ color: z === -1 ? COLORS.back : COLORS.inner }), // -Z (back)
+    createMaterial(isRightFace ? COLORS.right : COLORS.inner),  // +X
+    createMaterial(isLeftFace ? COLORS.left : COLORS.inner),    // -X
+    createMaterial(isUpFace ? COLORS.up : COLORS.inner),        // +Y
+    createMaterial(isDownFace ? COLORS.down : COLORS.inner),    // -Y
+    createMaterial(isFrontFace ? COLORS.front : COLORS.inner),  // +Z
+    createMaterial(isBackFace ? COLORS.back : COLORS.inner),    // -Z
   ];
 
   const mesh = new THREE.Mesh(geometry, materials);
@@ -111,19 +148,33 @@ const createCubie = (x, y, z) => {
 };
 
 /**
- * Create the full 3x3 cube
+ * Create the full NxN cube
  */
-const createCube = () => {
+const createCube = (size = 3) => {
+  currentSize = size;
+  currentFaceConfig = getFaceConfig(size);
+
   cubeGroup = new THREE.Group();
   pieces = [];
 
-  for (let x = -1; x <= 1; x++) {
-    for (let y = -1; y <= 1; y++) {
-      for (let z = -1; z <= 1; z++) {
-        // Skip the center piece (not visible)
-        if (x === 0 && y === 0 && z === 0) continue;
+  const half = (size - 1) / 2;
 
-        const cubie = createCubie(x, y, z);
+  for (let xi = 0; xi < size; xi++) {
+    for (let yi = 0; yi < size; yi++) {
+      for (let zi = 0; zi < size; zi++) {
+        // Only create visible pieces (those with at least one external face)
+        const isExternal = xi === 0 || xi === size - 1 ||
+                          yi === 0 || yi === size - 1 ||
+                          zi === 0 || zi === size - 1;
+
+        if (!isExternal) continue;
+
+        // Convert grid index to centered position
+        const x = xi - half;
+        const y = yi - half;
+        const z = zi - half;
+
+        const cubie = createCubie(x, y, z, size);
         pieces.push(cubie);
         cubeGroup.add(cubie);
       }
@@ -131,19 +182,36 @@ const createCube = () => {
   }
 
   scene.add(cubeGroup);
+
+  // Adjust camera for cube size
+  updateCameraForSize(size);
+
   return cubeGroup;
+};
+
+/**
+ * Update camera position based on cube size
+ */
+const updateCameraForSize = (size) => {
+  if (!camera) return;
+
+  const distance = CONFIG.baseCameraDistance + (size - 3) * 0.7;
+  camera.position.set(distance * 0.8, distance * 0.8, distance);
+  camera.lookAt(0, 0, 0);
 };
 
 /**
  * Get pieces belonging to a face
  */
 const getPiecesForFace = (face) => {
-  const config = FACE_CONFIG[face.toLowerCase()];
+  if (!currentFaceConfig) return [];
+  const config = currentFaceConfig[face.toLowerCase()];
   if (!config) return [];
 
+  const tolerance = 0.01;
   return pieces.filter(piece => {
     const pos = piece.userData.cubePos;
-    return Math.round(pos[config.axis]) === config.layer;
+    return Math.abs(pos[config.axis] - config.layer) < tolerance;
   });
 };
 
@@ -158,7 +226,13 @@ const animateFace = (face, clockwise = true) => {
     }
 
     isAnimating = true;
-    const config = FACE_CONFIG[face.toLowerCase()];
+    if (!currentFaceConfig) {
+      isAnimating = false;
+      resolve();
+      return;
+    }
+
+    const config = currentFaceConfig[face.toLowerCase()];
     if (!config) {
       isAnimating = false;
       resolve();
@@ -172,8 +246,7 @@ const animateFace = (face, clockwise = true) => {
       return;
     }
 
-    // Create rotation group as child of cubeGroup (not scene!)
-    // This keeps pieces in the same coordinate system
+    // Create rotation group as child of cubeGroup
     const rotationGroup = new THREE.Group();
     cubeGroup.add(rotationGroup);
 
@@ -187,7 +260,6 @@ const animateFace = (face, clockwise = true) => {
     const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
     const duration = CONFIG.animationDuration;
     const startTime = performance.now();
-    const startRotation = 0;
 
     // Easing function (ease-out cubic)
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -197,17 +269,10 @@ const animateFace = (face, clockwise = true) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutCubic(progress);
-
-      const currentAngle = startRotation + (targetAngle - startRotation) * easedProgress;
+      const currentAngle = targetAngle * easedProgress;
 
       // Apply rotation based on axis
-      if (config.axis === 'x') {
-        rotationGroup.rotation.x = currentAngle;
-      } else if (config.axis === 'y') {
-        rotationGroup.rotation.y = currentAngle;
-      } else {
-        rotationGroup.rotation.z = currentAngle;
-      }
+      rotationGroup.rotation[config.axis] = currentAngle;
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -233,31 +298,35 @@ const animateFace = (face, clockwise = true) => {
  * Finalize rotation - update piece positions and return to main group
  */
 const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
-  // Update rotationGroup matrix to get the final rotation
   rotationGroup.updateMatrix();
 
   facePieces.forEach(piece => {
-    // Compute new position by applying rotationGroup's rotation to piece position
+    // Compute new position by applying rotationGroup's rotation
     const newPos = piece.position.clone().applyMatrix4(rotationGroup.matrix);
 
-    // Round to nearest integer position
-    const newX = Math.round(newPos.x);
-    const newY = Math.round(newPos.y);
-    const newZ = Math.round(newPos.z);
+    // Round to nearest grid position (handles floating point errors)
+    const half = (currentSize - 1) / 2;
+    const roundToGrid = (val) => {
+      // Round to nearest valid grid position
+      const gridVal = Math.round(val * 2) / 2;
+      return Math.max(-half, Math.min(half, gridVal));
+    };
+
+    const newX = roundToGrid(newPos.x);
+    const newY = roundToGrid(newPos.y);
+    const newZ = roundToGrid(newPos.z);
 
     // Update logical position
     piece.userData.cubePos = { x: newX, y: newY, z: newZ };
 
     // Remove from rotation group
     rotationGroup.remove(piece);
-
-    // Set piece position in cubeGroup's local space
     piece.position.set(newX, newY, newZ);
 
-    // Apply the rotation to the piece's orientation
-    // The rotation angle matches what was animated
+    // Apply rotation to piece orientation
     const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
     const rotationMatrix = new THREE.Matrix4();
+
     if (config.axis === 'x') {
       rotationMatrix.makeRotationX(targetAngle);
     } else if (config.axis === 'y') {
@@ -266,7 +335,6 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
       rotationMatrix.makeRotationZ(targetAngle);
     }
 
-    // Apply rotation: new = rotation × existing (world frame rotation)
     const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
     const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
     piece.rotation.setFromRotationMatrix(combinedMatrix);
@@ -274,7 +342,6 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
     cubeGroup.add(piece);
   });
 
-  // Remove rotation group from cubeGroup
   cubeGroup.remove(rotationGroup);
 };
 
@@ -286,7 +353,21 @@ const resetCube = () => {
     scene.remove(cubeGroup);
   }
   pieces = [];
-  createCube();
+  animationQueue = [];
+  isAnimating = false;
+  createCube(currentSize);
+
+  // Reset view angle
+  cubeGroup.rotation.x = -0.4;
+  cubeGroup.rotation.y = 0.6;
+};
+
+/**
+ * Rebuild cube with a new size
+ */
+export const rebuildCube = (newSize) => {
+  currentSize = newSize;
+  resetCube();
 };
 
 /**
@@ -295,7 +376,7 @@ const resetCube = () => {
 const rotateCubeView = (axis, angle) => {
   if (!cubeGroup) return;
 
-  const duration = 300;
+  const duration = 250;
   const startTime = performance.now();
   const startRotation = cubeGroup.rotation[axis];
   const targetRotation = startRotation + angle;
@@ -318,46 +399,57 @@ const rotateCubeView = (axis, angle) => {
 /**
  * Initialize the Three.js scene
  */
-export const initThreeCube = async (container) => {
+export const initThreeCube = async (container, size = 3) => {
   await loadThree();
+
+  currentSize = size;
 
   // Scene setup
   scene = new THREE.Scene();
-  scene.background = null; // Transparent background
+  scene.background = null;
 
   // Camera
   const aspect = container.clientWidth / container.clientHeight;
-  camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-  camera.position.set(4, 4, 6);
-  camera.lookAt(0, 0, 0);
+  camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
 
-  // Renderer
+  // Renderer with better quality
   renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true
+    alpha: true,
+    powerPreference: "high-performance"
   });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
   container.appendChild(renderer.domElement);
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  // Enhanced lighting for better visuals
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 10, 7);
-  scene.add(directionalLight);
+  // Key light (main)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  keyLight.position.set(5, 8, 6);
+  scene.add(keyLight);
 
-  const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-  backLight.position.set(-5, -5, -5);
-  scene.add(backLight);
+  // Fill light (softer, from opposite side)
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  fillLight.position.set(-4, 4, -4);
+  scene.add(fillLight);
 
-  // Create cube
-  createCube();
+  // Rim light (back light for edge definition)
+  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  rimLight.position.set(0, -5, -8);
+  scene.add(rimLight);
+
+  // Create cube with specified size
+  createCube(size);
 
   // Initial rotation for nice view angle
-  cubeGroup.rotation.x = -0.5;
-  cubeGroup.rotation.y = 0.7;
+  cubeGroup.rotation.x = -0.4;
+  cubeGroup.rotation.y = 0.6;
 
   // Animation loop
   const renderLoop = () => {
@@ -380,6 +472,7 @@ export const initThreeCube = async (container) => {
     rotateFace: animateFace,
     reset: resetCube,
     rotateCubeView,
+    rebuildCube,
   };
 };
 
@@ -387,40 +480,46 @@ export const initThreeCube = async (container) => {
  * Apply a move instantly (for scrambles)
  */
 const applyMoveInstant = (face, clockwise = true) => {
-  const config = FACE_CONFIG[face.toLowerCase()];
+  if (!currentFaceConfig) return;
+  const config = currentFaceConfig[face.toLowerCase()];
   if (!config) return;
 
   const facePieces = getPiecesForFace(face);
   if (facePieces.length === 0) return;
 
-  // Calculate rotation angle: combines clockwise/ccw with face-specific direction
   const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
+  const sign = (clockwise ? -1 : 1) * config.direction;
+  const half = (currentSize - 1) / 2;
+
+  const roundToGrid = (val) => {
+    const gridVal = Math.round(val * 2) / 2;
+    return Math.max(-half, Math.min(half, gridVal));
+  };
 
   facePieces.forEach(piece => {
     const pos = piece.userData.cubePos;
     let newX = pos.x, newY = pos.y, newZ = pos.z;
 
-    // Rotate position around axis using the combined angle
-    // For 90° rotation around each axis:
-    const sign = (clockwise ? -1 : 1) * config.direction;
+    // Rotate position around axis
     if (config.axis === 'x') {
-      // Rotation around X: y' = -z*sign, z' = y*sign (for positive rotation)
       newY = -pos.z * sign;
       newZ = pos.y * sign;
     } else if (config.axis === 'y') {
-      // Rotation around Y: x' = z*sign, z' = -x*sign
       newX = pos.z * sign;
       newZ = -pos.x * sign;
     } else {
-      // Rotation around Z: x' = -y*sign, y' = x*sign
       newX = -pos.y * sign;
       newY = pos.x * sign;
     }
 
-    piece.userData.cubePos = { x: Math.round(newX), y: Math.round(newY), z: Math.round(newZ) };
-    piece.position.set(Math.round(newX), Math.round(newY), Math.round(newZ));
+    piece.userData.cubePos = {
+      x: roundToGrid(newX),
+      y: roundToGrid(newY),
+      z: roundToGrid(newZ)
+    };
+    piece.position.set(roundToGrid(newX), roundToGrid(newY), roundToGrid(newZ));
 
-    // Apply the rotation to the piece's orientation
+    // Apply rotation to piece orientation
     const rotationMatrix = new THREE.Matrix4();
     if (config.axis === 'x') {
       rotationMatrix.makeRotationX(targetAngle);
@@ -430,7 +529,6 @@ const applyMoveInstant = (face, clockwise = true) => {
       rotationMatrix.makeRotationZ(targetAngle);
     }
 
-    // Apply rotation: new = rotation × existing (world frame rotation)
     const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
     const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
     piece.rotation.setFromRotationMatrix(combinedMatrix);
@@ -455,7 +553,12 @@ export const applyScramble = (sequence) => {
   });
 };
 
-// Export face rotation function for external use
+/**
+ * Get current cube size
+ */
+export const getCurrentSize = () => currentSize;
+
+// Export functions
 export const rotateFace = (face, prime = false) => {
   return animateFace(face, !prime);
 };
