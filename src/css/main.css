@@ -345,7 +345,7 @@ a {
   width: 320px;
   height: 320px;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   background: transparent;
 }
 

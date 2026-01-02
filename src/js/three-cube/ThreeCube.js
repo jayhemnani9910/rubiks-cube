@@ -210,7 +210,7 @@ const createCube = (size = 3) => {
 const updateCameraForSize = (size) => {
   if (!camera) return;
 
-  const distance = CONFIG.baseCameraDistance + (size - 3) * 0.7;
+  const distance = CONFIG.baseCameraDistance + (size - 3) * 1.2;
   camera.position.set(distance * 0.8, distance * 0.8, distance);
   camera.lookAt(0, 0, 0);
 };
