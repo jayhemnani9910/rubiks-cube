@@ -192,8 +192,17 @@ const loadTutorial = async () => {
 };
 
 export const initTutorial = async () => {
+  // Attach close handlers FIRST (before any async operations)
+  // This ensures users can always close the modal even if content fails to load
+  openButton()?.addEventListener("click", openTutorial);
+  closeButton()?.addEventListener("click", closeTutorial);
+  modal()?.addEventListener("click", closeOnBackdrop);
+  document.addEventListener("keydown", closeOnEscape);
+
   await loadTutorial();
   if (!lessons.length) {
+    // Hide modal if it was somehow left open with no content
+    modal()?.classList.add("hide");
     return;
   }
 
@@ -204,11 +213,6 @@ export const initTutorial = async () => {
       lessonIndex = index;
     }
   }
-
-  openButton()?.addEventListener("click", openTutorial);
-  closeButton()?.addEventListener("click", closeTutorial);
-  modal()?.addEventListener("click", closeOnBackdrop);
-  document.addEventListener("keydown", closeOnEscape);
 
   prevButton()?.addEventListener("click", () => {
     if (stepIndex > 0) {
