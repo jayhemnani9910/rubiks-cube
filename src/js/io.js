@@ -27,7 +27,11 @@ const escapeCsv = (value) => {
   if (value === null || value === undefined) {
     return "";
   }
-  const text = String(value).replace(/"/g, '""');
+  // Normalize line endings and escape double quotes
+  const text = String(value)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/"/g, '""');
   return `"${text}"`;
 };
 

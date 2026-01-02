@@ -7,6 +7,22 @@ import { refreshLeaderboard } from "./leaderboard.js";
 import { resetCube } from "./cube.js";
 import { generateScramble } from "./scramble.js";
 import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
+import { rebuildPreview } from "./preview.js";
+
+/**
+ * Validates if a string is a valid CSS color
+ */
+const isValidColor = (color) => {
+  if (!color || typeof color !== "string") {
+    return false;
+  }
+  // Check common color formats
+  const hexRegex = /^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/;
+  const rgbRegex = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+(\s*,\s*(0|1|0?\.\d+))?\s*\)$/;
+  const hslRegex = /^hsla?\(\s*\d+\s*,\s*\d+%?\s*,\s*\d+%?(\s*,\s*(0|1|0?\.\d+))?\s*\)$/;
+  const namedColors = /^(transparent|currentColor|inherit|initial|unset|[a-z]+)$/i;
+  return hexRegex.test(color) || rgbRegex.test(color) || hslRegex.test(color) || namedColors.test(color);
+};
 
 const THEME_FIELDS = [
   { id: "custom-bg-start", variable: "--color-bg-start" },
@@ -35,7 +51,10 @@ const cubeInspection = () => document.getElementById("cube-inspection");
 
 const applyCustomTheme = (customTheme) => {
   Object.entries(customTheme).forEach(([variable, value]) => {
-    document.documentElement.style.setProperty(variable, value);
+    // Only apply valid colors to prevent CSS injection
+    if (isValidColor(value)) {
+      document.documentElement.style.setProperty(variable, value);
+    }
   });
 };
 
@@ -46,6 +65,10 @@ const clearCustomTheme = () => {
 };
 
 const applyTheme = (theme, customTheme) => {
+  // Preserve current scramble before theme change
+  const scrambleEl = document.getElementById("seq");
+  const currentScramble = scrambleEl?.textContent;
+
   document.documentElement.dataset.theme = theme;
   if (theme === "custom") {
     applyCustomTheme(customTheme);
@@ -54,6 +77,11 @@ const applyTheme = (theme, customTheme) => {
   }
 
   resetCube();
+
+  // Restore scramble after theme change
+  if (scrambleEl && currentScramble && currentScramble !== "\u00A0") {
+    scrambleEl.textContent = currentScramble;
+  }
 };
 
 const updateCubeNote = (cubeType) => {
@@ -143,6 +171,7 @@ export const initSettings = () => {
     cube.addEventListener("change", (event) => {
       const value = event.target.value;
       updateSettings({ cubeType: value });
+      rebuildPreview(); // Rebuild preview for new cube size
       resetCube();
       generateScramble();
       renderSolves();

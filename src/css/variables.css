@@ -35,3 +35,18 @@
   --color-modal-bg: #ffffff;
   --color-hover-bg: rgba(0, 0, 0, 0.08);
 }
+
+/* Responsive cube sizing for smaller screens */
+@media (max-width: 480px) {
+  :root {
+    --part-size: 20px;
+    --part-border-width: 1.5px;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --part-size: 16px;
+    --part-border-width: 1px;
+  }
+}

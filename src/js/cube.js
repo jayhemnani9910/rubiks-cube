@@ -11,11 +11,16 @@ import {
 import { syncPreview } from "./preview.js";
 
 const getElement = (id) => document.getElementById(id);
-const getPartColor = (id) =>
-  window.getComputedStyle(getElement(id)).getPropertyValue("background-color");
+const getPartColor = (id) => {
+  const el = getElement(id);
+  if (!el) return null;
+  return window.getComputedStyle(el).getPropertyValue("background-color");
+};
 
 // Applies a clockwise face turn to the cube state and plane view.
 export const applyTurn = (index, face) => {
+  if (index === undefined || !face) return;
+
   const faceColorArray = [];
   for (let i = 0; i < FACE_ARRAY.length; i += 1) {
     const elementId = `${face}${FACE_ARRAY[i]}`;
@@ -25,9 +30,13 @@ export const applyTurn = (index, face) => {
   for (let i = 0; i < FACE_ARRAY.length; i += 1) {
     const elementId = `${face}${FACE_ARRAY[i]}`;
     const color = faceColorArray[(i + 2) % FACE_ARRAY.length];
-    getElement(elementId).style.backgroundColor = color;
-    getElement(`x${elementId}`).style.backgroundColor = color;
+    const el = getElement(elementId);
+    const xel = getElement(`x${elementId}`);
+    if (el && color) el.style.backgroundColor = color;
+    if (xel && color) xel.style.backgroundColor = color;
   }
+
+  if (!SIDE_ARRAY[index]) return;
 
   const sideColorArray = [];
   for (let i = 0; i < SIDE_ARRAY[index].length; i += 1) {
@@ -36,8 +45,10 @@ export const applyTurn = (index, face) => {
 
   for (let i = 0; i < SIDE_ARRAY[index].length; i += 1) {
     const color = sideColorArray[(i + 3) % SIDE_ARRAY[index].length];
-    getElement(SIDE_ARRAY[index][i]).style.backgroundColor = color;
-    getElement(`x${SIDE_ARRAY[index][i]}`).style.backgroundColor = color;
+    const el = getElement(SIDE_ARRAY[index][i]);
+    const xel = getElement(`x${SIDE_ARRAY[index][i]}`);
+    if (el && color) el.style.backgroundColor = color;
+    if (xel && color) xel.style.backgroundColor = color;
   }
 
   syncPreview();

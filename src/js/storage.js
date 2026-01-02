@@ -103,7 +103,24 @@ let cachedState = loadState();
 export const getState = () => cachedState;
 
 const saveState = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedState));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedState));
+  } catch (error) {
+    if (error.name === "QuotaExceededError" || error.code === 22) {
+      console.warn("Storage quota exceeded. Trimming old solves.");
+      // Trim older solves to make room
+      if (cachedState.solves.length > 50) {
+        cachedState.solves = cachedState.solves.slice(0, 50);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedState));
+        } catch (retryError) {
+          console.error("Failed to save even after trimming:", retryError);
+        }
+      }
+    } else {
+      console.error("Failed to save state:", error);
+    }
+  }
 };
 
 export const updateState = (updater) => {

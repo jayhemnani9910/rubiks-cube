@@ -105,7 +105,7 @@ export const bindHistory = () => {
       }
 
       const item = target.closest(".solve-item");
-      if (!item) {
+      if (!item || !item.dataset.solveId) {
         return;
       }
 

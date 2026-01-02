@@ -2,6 +2,13 @@ import { DIRECTION_INDEX } from "./state.js";
 import { applyTurn, resetCube } from "./cube.js";
 import { getState } from "./storage.js";
 import { buildScramble, getCubeConfig } from "./cubes.js";
+import {
+  resetCubeState,
+  applyMoveToState,
+  syncDOMFromState,
+  syncPreviewFromState,
+  getCubeSize,
+} from "./dynamic-cube.js";
 
 const applyMoveToken = (token) => {
   const base = token[0].toLowerCase();
@@ -20,18 +27,36 @@ export const generateScramble = () => {
   const { cubeType } = getState().settings;
   const sequence = buildScramble(cubeType);
   const config = getCubeConfig(cubeType);
+  const cubeSize = getCubeSize();
 
-  const shouldApplyToCube = cubeType === "3x3" || cubeType === "2x2";
-
+  // Reset both the visual cube and the logical state
   resetCube();
+  resetCubeState();
 
-  if (shouldApplyToCube) {
+  // Apply moves to logical state for all cube sizes
+  sequence.forEach((token) => {
+    applyMoveToState(token);
+  });
+
+  // For 3x3 and 2x2, also apply to the visual DOM cube (backwards compatible)
+  // For larger cubes, the logical state is used for preview
+  if (cubeSize <= 3) {
     sequence.forEach((token) => {
+      // Skip wide moves for the 3x3 visual
       if (token.includes("w")) {
         return;
       }
       applyMoveToken(token);
     });
+  }
+
+  // Sync the preview from the logical state (works for all sizes)
+  syncPreviewFromState();
+
+  // Show/hide the cube note based on size
+  const cubeNote = document.getElementById("cube-note");
+  if (cubeNote) {
+    cubeNote.classList.toggle("hide", cubeSize <= 3);
   }
 
   const sequenceElement = document.getElementById("seq");
