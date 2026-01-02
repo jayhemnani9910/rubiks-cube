@@ -1,5 +1,5 @@
 import { DIRECTION_INDEX } from "./state.js";
-import { applyTurn, resetCube } from "./cube.js";
+import { applyTurn, resetCube, applyScrambleToThreeCube } from "./cube.js";
 import { getState } from "./storage.js";
 import { buildScramble, getCubeConfig } from "./cubes.js";
 import {
@@ -48,6 +48,9 @@ export const generateScramble = () => {
       }
       applyMoveToken(token);
     });
+
+    // Apply scramble to Three.js cube instantly
+    applyScrambleToThreeCube(sequence.filter(t => !t.includes("w")));
   }
 
   // Sync the preview from the logical state (works for all sizes)

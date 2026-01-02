@@ -340,6 +340,21 @@ a {
   min-height: 360px;
 }
 
+/* Three.js 3D Cube Container */
+.three-cube-container {
+  width: 320px;
+  height: 320px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.three-cube-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .cube-note {
   max-width: 320px;
   font-size: 0.75rem;

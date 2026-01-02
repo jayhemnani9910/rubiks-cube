@@ -5,6 +5,7 @@ import {
   rotateCube,
   toggleView,
   resetCube,
+  initCube,
 } from "./cube.js";
 import { generateScramble } from "./scramble.js";
 import { initTimer } from "./timer.js";
@@ -95,3 +96,6 @@ renderSolves();
 renderStats();
 initCharts();
 renderCharts();
+
+// Initialize Three.js 3D cube
+initCube();

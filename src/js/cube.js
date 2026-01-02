@@ -9,12 +9,40 @@ import {
   getFaceColors,
 } from "./state.js";
 import { syncPreview } from "./preview.js";
+import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble } from "./three-cube/ThreeCube.js";
+
+// Three.js cube instance
+let threeCube = null;
 
 const getElement = (id) => document.getElementById(id);
 const getPartColor = (id) => {
   const el = getElement(id);
   if (!el) return null;
   return window.getComputedStyle(el).getPropertyValue("background-color");
+};
+
+/**
+ * Initialize the Three.js 3D cube
+ */
+export const initCube = async () => {
+  const container = document.getElementById("three-cube-container");
+  if (!container) {
+    console.warn("Three.js cube container not found");
+    return;
+  }
+
+  try {
+    threeCube = await initThreeCube(container);
+    console.log("Three.js cube initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize Three.js cube:", error);
+    // Show legacy CSS cube as fallback
+    const legacyCube = document.querySelector(".cube");
+    if (legacyCube) {
+      legacyCube.classList.remove("hide");
+    }
+    container.style.display = "none";
+  }
 };
 
 // Applies a clockwise face turn to the cube state and plane view.
@@ -58,6 +86,11 @@ export const rotateFace = (key) => {
   const finalMove =
     TRANSLATION_MATRIX[DIRECTION_INDEX.get(key)][cubeState.currentState];
   applyTurn(DIRECTION_INDEX.get(finalMove), finalMove);
+
+  // Animate Three.js cube (clockwise)
+  if (threeCube) {
+    threeRotateFace(finalMove.toLowerCase(), false);
+  }
 };
 
 export const rotateFacePrime = (key) => {
@@ -67,19 +100,43 @@ export const rotateFacePrime = (key) => {
   for (let i = 0; i < 3; i += 1) {
     applyTurn(DIRECTION_INDEX.get(finalMove), finalMove);
   }
+
+  // Animate Three.js cube (counter-clockwise / prime)
+  if (threeCube) {
+    threeRotateFace(finalMove.toLowerCase(), true);
+  }
 };
 
 export const rotateCube = (directionIndex) => {
   const cube = document.querySelector(".cube");
-  cube.classList.remove(cubeState.currentClass);
-  cubeState.currentClass = `s${cubeState.currentState}${directionIndex + 1}`;
-  cube.classList.add(cubeState.currentClass);
+  if (cube) {
+    cube.classList.remove(cubeState.currentClass);
+    cubeState.currentClass = `s${cubeState.currentState}${directionIndex + 1}`;
+    cube.classList.add(cubeState.currentClass);
+  }
   cubeState.currentState = STATE_MAP[cubeState.currentState][directionIndex];
+
+  // Rotate Three.js cube view
+  if (threeCube) {
+    const rotations = [
+      { axis: 'y', angle: Math.PI / 6 },   // left
+      { axis: 'x', angle: -Math.PI / 6 },  // up
+      { axis: 'y', angle: -Math.PI / 6 },  // right
+      { axis: 'x', angle: Math.PI / 6 },   // down
+    ];
+    const { axis, angle } = rotations[directionIndex];
+    rotateCubeView(axis, angle);
+  }
 };
 
 export const toggleView = () => {
-  document.querySelector(".cube").classList.toggle("hide");
-  document.querySelector(".plane-cube").classList.toggle("hide");
+  const threeCubeContainer = document.getElementById("three-cube-container");
+  const planeCube = document.querySelector(".plane-cube");
+
+  if (threeCubeContainer && planeCube) {
+    threeCubeContainer.classList.toggle("hide");
+    planeCube.classList.toggle("hide");
+  }
 };
 
 export const resetCube = () => {
@@ -98,10 +155,26 @@ export const resetCube = () => {
   }
 
   const cube = document.querySelector(".cube");
-  cube.classList.remove(cubeState.currentClass);
-  cubeState.currentClass = "s23";
-  cube.classList.add(cubeState.currentClass);
+  if (cube) {
+    cube.classList.remove(cubeState.currentClass);
+    cubeState.currentClass = "s23";
+    cube.classList.add(cubeState.currentClass);
+  }
   cubeState.currentState = 1;
 
+  // Reset Three.js cube
+  if (threeCube) {
+    threeResetCube();
+  }
+
   syncPreview();
+};
+
+/**
+ * Apply a scramble sequence to the Three.js cube instantly
+ */
+export const applyScrambleToThreeCube = (sequence) => {
+  if (threeCube) {
+    threeApplyScramble(sequence);
+  }
 };

@@ -217,7 +217,11 @@
         </aside>
 
         <section class="cube-stage">
-            <div class="cube s23">
+            <!-- Three.js 3D Cube Canvas -->
+            <div id="three-cube-container" class="three-cube-container"></div>
+
+            <!-- Legacy CSS Cube (hidden when Three.js is active) -->
+            <div class="cube s23 hide">
                 <div class="front">
                     <div class="part" id="f1"></div>
                     <div class="part" id="f2"></div>
