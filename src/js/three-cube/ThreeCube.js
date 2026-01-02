@@ -101,7 +101,7 @@ const createRoundedBox = (size, radius, segments = 3) => {
 };
 
 /**
- * Create a single cubie with colored faces
+ * Create a single cubie with colored faces and white edges
  */
 const createCubie = (x, y, z, size) => {
   const half = (size - 1) / 2;
@@ -136,15 +136,30 @@ const createCubie = (x, y, z, size) => {
   ];
 
   const mesh = new THREE.Mesh(geometry, materials);
-  mesh.position.set(x, y, z);
+
+  // Create white edge outline for enhanced look
+  const edgeGeometry = new THREE.EdgesGeometry(geometry, 15); // threshold angle
+  const edgeMaterial = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    linewidth: 2,
+    transparent: true,
+    opacity: 0.9,
+  });
+  const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+
+  // Create a group to hold both mesh and edges
+  const cubieGroup = new THREE.Group();
+  cubieGroup.add(mesh);
+  cubieGroup.add(edges);
+  cubieGroup.position.set(x, y, z);
 
   // Store logical position for rotation tracking
-  mesh.userData = {
+  cubieGroup.userData = {
     cubePos: { x, y, z },
     originalPos: { x, y, z }
   };
 
-  return mesh;
+  return cubieGroup;
 };
 
 /**
