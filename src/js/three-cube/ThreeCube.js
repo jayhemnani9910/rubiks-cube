@@ -172,9 +172,10 @@ const animateFace = (face, clockwise = true) => {
       return;
     }
 
-    // Create rotation group
+    // Create rotation group as child of cubeGroup (not scene!)
+    // This keeps pieces in the same coordinate system
     const rotationGroup = new THREE.Group();
-    scene.add(rotationGroup);
+    cubeGroup.add(rotationGroup);
 
     // Move pieces to rotation group
     facePieces.forEach(piece => {
@@ -232,48 +233,49 @@ const animateFace = (face, clockwise = true) => {
  * Finalize rotation - update piece positions and return to main group
  */
 const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
-  const angle = clockwise ? -1 : 1;
+  // Update rotationGroup matrix to get the final rotation
+  rotationGroup.updateMatrix();
 
   facePieces.forEach(piece => {
-    // Update world matrix
-    piece.updateMatrixWorld();
-
-    // Get world position and apply to local
-    const worldPos = new THREE.Vector3();
-    piece.getWorldPosition(worldPos);
+    // Compute new position by applying rotationGroup's rotation to piece position
+    const newPos = piece.position.clone().applyMatrix4(rotationGroup.matrix);
 
     // Round to nearest integer position
-    const newX = Math.round(worldPos.x);
-    const newY = Math.round(worldPos.y);
-    const newZ = Math.round(worldPos.z);
+    const newX = Math.round(newPos.x);
+    const newY = Math.round(newPos.y);
+    const newZ = Math.round(newPos.z);
 
     // Update logical position
     piece.userData.cubePos = { x: newX, y: newY, z: newZ };
 
-    // Remove from rotation group and add back to cube group
+    // Remove from rotation group
     rotationGroup.remove(piece);
 
-    // Reset piece rotation and position
+    // Set piece position in cubeGroup's local space
     piece.position.set(newX, newY, newZ);
 
-    // Apply the rotation to the piece itself
+    // Apply the rotation to the piece's orientation
+    // The rotation angle matches what was animated
+    const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
     const rotationMatrix = new THREE.Matrix4();
     if (config.axis === 'x') {
-      rotationMatrix.makeRotationX(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationX(targetAngle);
     } else if (config.axis === 'y') {
-      rotationMatrix.makeRotationY(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationY(targetAngle);
     } else {
-      rotationMatrix.makeRotationZ(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationZ(targetAngle);
     }
-    piece.rotation.setFromRotationMatrix(
-      rotationMatrix.multiply(new THREE.Matrix4().makeRotationFromEuler(piece.rotation))
-    );
+
+    // Apply rotation: new = rotation × existing (world frame rotation)
+    const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
+    const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
+    piece.rotation.setFromRotationMatrix(combinedMatrix);
 
     cubeGroup.add(piece);
   });
 
-  // Remove rotation group
-  scene.remove(rotationGroup);
+  // Remove rotation group from cubeGroup
+  cubeGroup.remove(rotationGroup);
 };
 
 /**
@@ -391,39 +393,47 @@ const applyMoveInstant = (face, clockwise = true) => {
   const facePieces = getPiecesForFace(face);
   if (facePieces.length === 0) return;
 
-  const angle = clockwise ? -1 : 1;
+  // Calculate rotation angle: combines clockwise/ccw with face-specific direction
+  const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
 
   facePieces.forEach(piece => {
     const pos = piece.userData.cubePos;
     let newX = pos.x, newY = pos.y, newZ = pos.z;
 
-    // Rotate position around axis
+    // Rotate position around axis using the combined angle
+    // For 90° rotation around each axis:
+    const sign = (clockwise ? -1 : 1) * config.direction;
     if (config.axis === 'x') {
-      newY = angle * config.direction * -pos.z;
-      newZ = angle * config.direction * pos.y;
+      // Rotation around X: y' = -z*sign, z' = y*sign (for positive rotation)
+      newY = -pos.z * sign;
+      newZ = pos.y * sign;
     } else if (config.axis === 'y') {
-      newX = angle * config.direction * pos.z;
-      newZ = angle * config.direction * -pos.x;
+      // Rotation around Y: x' = z*sign, z' = -x*sign
+      newX = pos.z * sign;
+      newZ = -pos.x * sign;
     } else {
-      newX = angle * config.direction * -pos.y;
-      newY = angle * config.direction * pos.x;
+      // Rotation around Z: x' = -y*sign, y' = x*sign
+      newX = -pos.y * sign;
+      newY = pos.x * sign;
     }
 
     piece.userData.cubePos = { x: Math.round(newX), y: Math.round(newY), z: Math.round(newZ) };
     piece.position.set(Math.round(newX), Math.round(newY), Math.round(newZ));
 
-    // Apply the rotation to the piece mesh
+    // Apply the rotation to the piece's orientation
     const rotationMatrix = new THREE.Matrix4();
     if (config.axis === 'x') {
-      rotationMatrix.makeRotationX(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationX(targetAngle);
     } else if (config.axis === 'y') {
-      rotationMatrix.makeRotationY(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationY(targetAngle);
     } else {
-      rotationMatrix.makeRotationZ(angle * config.direction * Math.PI / 2);
+      rotationMatrix.makeRotationZ(targetAngle);
     }
-    piece.rotation.setFromRotationMatrix(
-      rotationMatrix.multiply(new THREE.Matrix4().makeRotationFromEuler(piece.rotation))
-    );
+
+    // Apply rotation: new = rotation × existing (world frame rotation)
+    const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
+    const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
+    piece.rotation.setFromRotationMatrix(combinedMatrix);
   });
 };
 
