@@ -1,5 +1,5 @@
-import { getState } from "./storage.js";
-import { formatTime } from "./utils.js";
+import { getState, getActiveSolves } from "./storage.js";
+import { formatTime, applyPenalty, validateScramble } from "./utils.js";
 import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
 
 const leaderboardSelect = () => document.getElementById("leaderboard-cube");
@@ -11,49 +11,12 @@ let leaderboardData = null;
 
 const loadLeaderboard = async () => {
   try {
-    const response = await fetch("./data/leaderboard.json", { cache: "no-store" });
+    const response = await fetch("./data/leaderboard.json", { cache: "no-cache" });
     leaderboardData = await response.json();
   } catch (error) {
     console.warn("Failed to load leaderboard.", error);
     leaderboardData = { records: {} };
   }
-};
-
-const parseTokens = (scramble) =>
-  scramble
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-const normalizeToken = (token) => {
-  const modifier = token.endsWith("'")
-    ? "'"
-    : token.endsWith("2")
-    ? "2"
-    : "";
-  const base = modifier ? token.slice(0, -1) : token;
-  return { base, modifier };
-};
-
-const isScrambleValid = (scramble, cubeType) => {
-  if (!scramble) {
-    return false;
-  }
-
-  const { moves, scrambleLength } = getCubeConfig(cubeType);
-  const tokens = parseTokens(scramble);
-  if (tokens.length < scrambleLength) {
-    return false;
-  }
-
-  const moveSet = new Set(moves);
-  return tokens.every((token) => {
-    const { base, modifier } = normalizeToken(token);
-    if (!moveSet.has(base)) {
-      return false;
-    }
-    return modifier === "" || modifier === "2" || modifier === "'";
-  });
 };
 
 const renderLeaderboard = (cubeType) => {
@@ -96,24 +59,21 @@ const renderLeaderboard = (cubeType) => {
 };
 
 const buildSubmissionUrl = () => {
-  const { solves, settings } = getState();
+  const { settings } = getState();
   const cubeType = settings.cubeType ?? "3x3";
-  const activeSession = settings.sessionId;
-  const filtered = solves.filter(
-    (solve) =>
-      (solve.cubeType ?? "3x3") === cubeType && solve.sessionId === activeSession
-  );
+  const filtered = getActiveSolves();
   const validSolves = filtered
     .filter((solve) => solve.penalty !== "dnf")
     .map((solve) => {
-      const adjusted = solve.penalty === "plus2" ? solve.timeMs + 2000 : solve.timeMs;
+      const adjusted = applyPenalty(solve);
       return { ...solve, adjusted };
     })
     .sort((a, b) => a.adjusted - b.adjusted);
 
   const best = validSolves[0];
   const scramble = best?.scramble ?? "";
-  const verified = isScrambleValid(scramble, cubeType) ? "Yes" : "No";
+  const { moves, scrambleLength } = getCubeConfig(cubeType);
+  const verified = validateScramble(scramble, moves, scrambleLength) ? "Yes" : "No";
   const timeDisplay = best ? formatTime(best.adjusted, settings.precision) : "";
 
   const title = `Leaderboard Submission - ${cubeType} - ${timeDisplay}`;

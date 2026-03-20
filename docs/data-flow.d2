@@ -1,0 +1,99 @@
+direction: down
+
+title: {
+  label: Rubik's Cube Timer — Data Flow
+  near: top-center
+  shape: text
+  style.font-size: 24
+  style.bold: true
+}
+
+# Entry points
+input: User Input {
+  style.fill: "#e0f2fe"
+  keyboard: Keyboard Events\n(Space, Arrows, R/L/U/D/F/B)
+  buttons: UI Buttons\n(Timer, Scramble, Settings)
+  selects: Dropdowns\n(Cube type, Session, Theme)
+}
+
+# Processing
+processing: Processing {
+  style.fill: "#ede9fe"
+
+  scramble-flow: Scramble Flow {
+    generate: buildScramble()
+    apply-logical: applyMoveToState()
+    apply-visual: applyTurn() (3x3 DOM)
+    apply-three: applyScramble() (Three.js)
+  }
+
+  timer-flow: Timer Flow {
+    inspection: Inspection Phase\n(15s countdown)
+    timing: Active Timing\n(rAF loop)
+    penalty: Penalty Calc\n(OK / +2 / DNF)
+    record: Create Solve Object
+  }
+
+  stats-flow: Stats Flow {
+    filter: getActiveSolves()\n(cubeType + sessionId)
+    compute: Compute Best/Worst\nMean/Ao5/Ao12/Ao100
+    pb: PB History Tracking
+  }
+}
+
+# Storage
+storage: LocalStorage {
+  shape: cylinder
+  style.fill: "#fce7f3"
+  state: "cachedState" {
+    settings: settings {shape: document}
+    solves: "solves[]" {shape: document}
+    sessions: "sessions[]" {shape: document}
+    tutorial: tutorial {shape: document}
+  }
+}
+
+# Output
+output: Output {
+  style.fill: "#f0fdf4"
+  timer-display: Timer Display
+  three-cube: 3D Cube Visual
+  preview-net: 2D Preview Net
+  stats-bar: Stats Bar (Best/Ao5/Ao12)
+  solve-list: Solve History List
+  trend-chart: Trend Line Chart
+  histogram: Time Histogram
+}
+
+# Scramble flow
+input.keyboard -> processing.scramble-flow.generate: "G key"
+input.buttons -> processing.scramble-flow.generate: "Generate button"
+processing.scramble-flow.generate -> processing.scramble-flow.apply-logical
+processing.scramble-flow.generate -> processing.scramble-flow.apply-visual: "if size ≤ 3"
+processing.scramble-flow.generate -> processing.scramble-flow.apply-three
+processing.scramble-flow.apply-logical -> output.preview-net: syncPreviewFromState()
+processing.scramble-flow.apply-visual -> output.three-cube
+processing.scramble-flow.apply-three -> output.three-cube
+
+# Timer flow
+input.keyboard -> processing.timer-flow.inspection: "Space (1st press)"
+input.buttons -> processing.timer-flow.timing: "Timer toggle"
+processing.timer-flow.inspection -> processing.timer-flow.timing: "Space (2nd press)"
+processing.timer-flow.timing -> processing.timer-flow.penalty: "Space (stop)"
+processing.timer-flow.penalty -> processing.timer-flow.record
+processing.timer-flow.record -> storage.state.solves: addSolve()
+processing.timer-flow.timing -> output.timer-display: "rAF updates"
+
+# Stats flow
+storage.state.solves -> processing.stats-flow.filter
+storage.state.settings -> processing.stats-flow.filter: "cubeType + sessionId"
+processing.stats-flow.filter -> processing.stats-flow.compute
+processing.stats-flow.compute -> output.stats-bar
+processing.stats-flow.compute -> output.solve-list: renderSolves()
+processing.stats-flow.filter -> output.trend-chart: buildTrendData()
+processing.stats-flow.filter -> output.histogram: buildHistogramData()
+processing.stats-flow.compute -> processing.stats-flow.pb
+
+# Settings flow
+input.selects -> storage.state.settings: updateSettings()
+storage.state.settings -> output.three-cube: "Theme / Cube size"

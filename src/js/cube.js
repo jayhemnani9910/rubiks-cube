@@ -8,12 +8,14 @@ import {
   cubeState,
   getFaceColors,
 } from "./state.js";
+import { EMPTY_SCRAMBLE } from "./utils.js";
 import { syncPreview } from "./preview.js";
 import { getCubeSize } from "./dynamic-cube.js";
 import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble, rebuildCube } from "./three-cube/ThreeCube.js";
 
 // Three.js cube instance
 let threeCube = null;
+let pendingRebuildSize = null;
 
 const getElement = (id) => document.getElementById(id);
 const getPartColor = (id) => {
@@ -34,8 +36,10 @@ export const initCube = async () => {
 
   try {
     const size = getCubeSize();
-    threeCube = await initThreeCube(container, size);
-    console.log(`Three.js ${size}x${size} cube initialized successfully`);
+    const initSize = pendingRebuildSize ?? size;
+    pendingRebuildSize = null;
+    threeCube = await initThreeCube(container, initSize);
+    console.log(`Three.js ${initSize}x${initSize} cube initialized successfully`);
   } catch (error) {
     console.error("Failed to initialize Three.js cube:", error);
     // Show legacy CSS cube as fallback
@@ -85,8 +89,9 @@ export const applyTurn = (index, face) => {
 };
 
 export const rotateFace = (key) => {
+  const normalizedKey = key.toLowerCase();
   const finalMove =
-    TRANSLATION_MATRIX[DIRECTION_INDEX.get(key)][cubeState.currentState];
+    TRANSLATION_MATRIX[DIRECTION_INDEX.get(normalizedKey)][cubeState.currentState];
   applyTurn(DIRECTION_INDEX.get(finalMove), finalMove);
 
   // Animate Three.js cube (clockwise)
@@ -153,7 +158,7 @@ export const resetCube = () => {
 
   const sequence = document.getElementById("seq");
   if (sequence) {
-    sequence.textContent = "\u00A0";
+    sequence.textContent = EMPTY_SCRAMBLE;
   }
 
   const cube = document.querySelector(".cube");
@@ -185,9 +190,12 @@ export const applyScrambleToThreeCube = (sequence) => {
  * Rebuild the Three.js cube with a new size
  */
 export const rebuildThreeCube = () => {
+  const size = getCubeSize();
   if (threeCube) {
-    const size = getCubeSize();
     rebuildCube(size);
     console.log(`Three.js cube rebuilt as ${size}x${size}`);
+  } else {
+    // Queue rebuild for when init completes
+    pendingRebuildSize = size;
   }
 };

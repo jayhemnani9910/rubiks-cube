@@ -9,6 +9,9 @@ const overlay = () => document.getElementById("panel-overlay");
 
 const panels = () => [settingsPanel(), statsPanel(), menuPanel()].filter(Boolean);
 
+export const isAnyPanelOpen = () =>
+  panels().some((p) => !p.classList.contains("hide"));
+
 const closeAllPanels = () => {
   panels().forEach((panel) => panel.classList.add("hide"));
   const o = overlay();
@@ -100,22 +103,10 @@ export const initPanels = () => {
     o.addEventListener("click", closeAllPanels);
   }
 
-  // Menu items that open other panels
+  // Menu items that open tutorial modal (tutorial.js owns the #tutorial-open listener)
   const menuTutorial = document.getElementById("menu-tutorial");
   if (menuTutorial) {
     menuTutorial.addEventListener("click", () => {
-      closeAllPanels();
-      const tutorialModal = document.getElementById("tutorial-modal");
-      if (tutorialModal) {
-        tutorialModal.classList.remove("hide");
-      }
-    });
-  }
-
-  // Tutorial open from settings
-  const tutorialOpen = document.getElementById("tutorial-open");
-  if (tutorialOpen) {
-    tutorialOpen.addEventListener("click", () => {
       closeAllPanels();
       const tutorialModal = document.getElementById("tutorial-modal");
       if (tutorialModal) {

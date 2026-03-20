@@ -1,5 +1,5 @@
-import { getState } from "./storage.js";
-import { formatTime } from "./utils.js";
+import { getState, getActiveSolves } from "./storage.js";
+import { formatTime, applyPenalty } from "./utils.js";
 
 let ChartClass = null;
 let trendChart = null;
@@ -26,25 +26,6 @@ const loadChartModule = async () => {
   }
 };
 
-const applyPenalty = (solve) => {
-  if (solve.penalty === "dnf") {
-    return null;
-  }
-
-  const base = solve.timeMs ?? 0;
-  return solve.penalty === "plus2" ? base + 2000 : base;
-};
-
-const getActiveSolves = () => {
-  const { solves, settings } = getState();
-  const activeCube = settings.cubeType ?? "3x3";
-  const activeSession = settings.sessionId;
-  return solves.filter(
-    (solve) =>
-      (solve.cubeType ?? "3x3") === activeCube &&
-      solve.sessionId === activeSession
-  );
-};
 
 const getChartColors = () => {
   const styles = getComputedStyle(document.documentElement);

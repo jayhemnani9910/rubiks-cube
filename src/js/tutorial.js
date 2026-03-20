@@ -182,7 +182,7 @@ const closeOnEscape = (event) => {
 
 const loadTutorial = async () => {
   try {
-    const response = await fetch("./data/tutorial.json", { cache: "no-store" });
+    const response = await fetch("./data/tutorial.json", { cache: "no-cache" });
     const data = await response.json();
     lessons = data.lessons ?? [];
   } catch (error) {

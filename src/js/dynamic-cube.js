@@ -4,6 +4,7 @@
  */
 
 import { getState } from "./storage.js";
+import { getFaceColors } from "./state.js";
 
 // Face names in standard order
 export const FACES = ["right", "left", "up", "down", "front", "back"];
@@ -26,7 +27,7 @@ export const getCubeSize = () => {
  */
 export const initCubeColors = (size) => {
   cubeSize = size;
-  const faceColors = getFaceColorsFromCSS();
+  const faceColors = getFaceColors();
   cubeColors = {};
 
   FACE_LETTERS.forEach((face, index) => {
@@ -37,16 +38,6 @@ export const initCubeColors = (size) => {
   });
 
   return cubeColors;
-};
-
-/**
- * Get face colors from CSS variables
- */
-const getFaceColorsFromCSS = () => {
-  const rootStyles = getComputedStyle(document.documentElement);
-  return FACES.map((direction) =>
-    rootStyles.getPropertyValue(`--face-${direction}`).trim()
-  );
 };
 
 /**
@@ -80,14 +71,20 @@ const rotateFaceClockwise = (faceArray, size) => {
 };
 
 /**
- * Rotate a face counter-clockwise (3 clockwise rotations)
+ * Rotate a face counter-clockwise (direct computation)
+ * For a 90-degree counter-clockwise rotation:
+ * new[size-1-col][row] = old[row][col]
  */
 const rotateFaceCounterClockwise = (faceArray, size) => {
-  let result = faceArray;
-  for (let i = 0; i < 3; i++) {
-    result = rotateFaceClockwise(result, size);
+  const newFace = [...faceArray];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const oldIndex = getIndex(row, col, size);
+      const newIndex = getIndex(size - 1 - col, row, size);
+      newFace[newIndex] = faceArray[oldIndex];
+    }
   }
-  return result;
+  return newFace;
 };
 
 /**
@@ -172,7 +169,7 @@ export const applyTurnToState = (face, depth = 0) => {
     initCubeColors(getCubeSize());
   }
 
-  const size = cubeSize;
+  const size = getCubeSize();
 
   // Only rotate the face itself if it's the outer layer (depth 0)
   if (depth === 0) {

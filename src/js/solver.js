@@ -1,6 +1,7 @@
 import { loadSolverModule } from "../wasm/solver-loader.js";
 import { getCubeConfig } from "./cubes.js";
 import { getState } from "./storage.js";
+import { EMPTY_SCRAMBLE, validateScramble as checkScrambleValid } from "./utils.js";
 
 const output = () => document.getElementById("solver-output");
 const validateButton = () => document.getElementById("solver-validate");
@@ -10,44 +11,7 @@ let solverModule = null;
 
 const getScramble = () => {
   const text = document.getElementById("seq")?.textContent?.trim();
-  return text && text !== "\u00A0" ? text : "";
-};
-
-const parseTokens = (scramble) =>
-  scramble
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-const normalizeToken = (token) => {
-  const modifier = token.endsWith("'")
-    ? "'"
-    : token.endsWith("2")
-    ? "2"
-    : "";
-  const base = modifier ? token.slice(0, -1) : token;
-  return { base, modifier };
-};
-
-const jsValidateScramble = (scramble, cubeType) => {
-  if (!scramble) {
-    return false;
-  }
-
-  const { moves, scrambleLength } = getCubeConfig(cubeType);
-  const tokens = parseTokens(scramble);
-  if (tokens.length < scrambleLength) {
-    return false;
-  }
-
-  const moveSet = new Set(moves);
-  return tokens.every((token) => {
-    const { base, modifier } = normalizeToken(token);
-    if (!moveSet.has(base)) {
-      return false;
-    }
-    return modifier === "" || modifier === "2" || modifier === "'";
-  });
+  return text && text !== EMPTY_SCRAMBLE ? text : "";
 };
 
 const renderOutput = (message) => {
@@ -71,7 +35,8 @@ const validateScramble = () => {
     return;
   }
 
-  const valid = jsValidateScramble(scramble, cubeType);
+  const { moves, scrambleLength } = getCubeConfig(cubeType);
+  const valid = checkScrambleValid(scramble, moves, scrambleLength);
   renderOutput(valid ? "Scramble looks valid (JS check)." : "Scramble invalid.");
 };
 

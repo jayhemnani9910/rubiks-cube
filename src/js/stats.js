@@ -1,18 +1,9 @@
-import { getState } from "./storage.js";
-import { formatTime } from "./utils.js";
+import { getState, getActiveSolves } from "./storage.js";
+import { formatTime, applyPenalty } from "./utils.js";
 
 const statValue = (id) => document.getElementById(id);
 const pbList = () => document.getElementById("pb-list");
 const pbEmpty = () => document.getElementById("pb-empty");
-
-const applyPenalty = (solve) => {
-  if (solve.penalty === "dnf") {
-    return null;
-  }
-
-  const base = solve.timeMs ?? 0;
-  return solve.penalty === "plus2" ? base + 2000 : base;
-};
 
 const computeAverage = (values) => {
   if (!values.length) {
@@ -131,14 +122,8 @@ const renderPbHistory = (solves, precision) => {
 };
 
 export const renderStats = () => {
-  const { solves, settings } = getState();
-  const activeCube = settings.cubeType ?? "3x3";
-  const activeSession = settings.sessionId;
-  const filteredSolves = solves.filter(
-    (solve) =>
-      (solve.cubeType ?? "3x3") === activeCube &&
-      solve.sessionId === activeSession
-  );
+  const { settings } = getState();
+  const filteredSolves = getActiveSolves();
 
   const times = filteredSolves
     .map((solve) => applyPenalty(solve))

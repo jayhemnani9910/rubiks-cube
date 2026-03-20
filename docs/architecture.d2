@@ -1,0 +1,114 @@
+direction: right
+
+title: {
+  label: Rubik's Cube Timer — System Architecture
+  near: top-center
+  shape: text
+  style.font-size: 24
+  style.bold: true
+}
+
+user: User {
+  shape: person
+  style.fill: "#e0f2fe"
+}
+
+presentation: Presentation Layer {
+  style.fill: "#f0fdf4"
+  header: Header Bar {
+    cube-selector: Cube Selector (2x2–7x7)
+    settings-toggle: Settings Toggle
+    stats-toggle: Stats Toggle
+  }
+  hero: Hero Area {
+    scramble: Scramble Display
+    timer: Timer Display
+    inspection: Inspection Countdown
+  }
+  panels: Slide Panels {
+    settings: Settings Panel
+    stats: Stats Panel
+    menu: Menu Panel
+  }
+  modals: Modals {
+    tutorial: Tutorial Modal
+    onboarding: Onboarding Overlay
+  }
+}
+
+rendering: Rendering Layer {
+  style.fill: "#fef3c7"
+  three-cube: Three.js 3D Cube {
+    shape: hexagon
+    style.fill: "#fbbf24"
+  }
+  css-cube: CSS 3D Fallback Cube
+  preview: 2D Preview Net
+  charts: Chart.js (Trend + Histogram)
+}
+
+logic: Domain Logic {
+  style.fill: "#ede9fe"
+  cube-state: Cube State Manager\n(dynamic-cube.js)
+  scramble-gen: Scramble Generator\n(scramble.js + cubes.js)
+  timer-logic: Timer Engine\n(timer.js)
+  stats-compute: Statistics Computer\n(stats.js)
+  session-mgr: Session Manager\n(sessions.js)
+  solver: WASM Solver\n(solver.js)
+}
+
+data: Data Layer {
+  style.fill: "#fce7f3"
+  storage: LocalStorage\n(storage.js) {
+    shape: cylinder
+  }
+}
+
+external: External {
+  style.fill: "#f1f5f9"
+  three-cdn: Three.js CDN\n(unpkg.com) {
+    shape: cloud
+  }
+  github: GitHub Issues\n(Leaderboard) {
+    shape: cloud
+  }
+  pwa: Service Worker\n(Offline) {
+    shape: diamond
+  }
+}
+
+# User interactions
+user -> presentation.hero.timer: Space / Click
+user -> presentation.hero.scramble: View scramble
+user -> presentation.header: Configure
+user -> presentation.panels: Browse stats/settings
+
+# Presentation to rendering
+presentation.hero -> rendering.three-cube: Display cube
+presentation.hero -> rendering.css-cube: Fallback display
+presentation.panels.stats -> rendering.charts: View charts
+presentation -> rendering.preview: Cube net
+
+# Presentation to logic
+presentation.header.cube-selector -> logic.scramble-gen: Change cube type
+presentation.hero.timer -> logic.timer-logic: Start / Stop
+presentation.modals.tutorial -> logic.solver: Validate / Hint
+
+# Logic flows
+logic.scramble-gen -> logic.cube-state: Apply moves
+logic.timer-logic -> logic.stats-compute: Record solve
+logic.session-mgr -> logic.stats-compute: Filter by session
+logic.cube-state -> rendering.three-cube: Update 3D
+logic.cube-state -> rendering.preview: Sync preview
+logic.stats-compute -> rendering.charts: Update data
+
+# Data persistence
+logic.timer-logic -> data.storage: Save solve
+logic.session-mgr -> data.storage: CRUD sessions
+logic.stats-compute -> data.storage: Read solves
+presentation.panels.settings -> data.storage: Save preferences
+
+# External
+rendering.three-cube -> external.three-cdn: Load library
+external.pwa -> data.storage: Cache data
+presentation.panels -> external.github: Submit time

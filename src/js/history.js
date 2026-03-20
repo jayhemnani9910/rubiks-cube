@@ -1,9 +1,10 @@
 import {
   getState,
+  getActiveSolves,
   updateSolvePenalty,
   clearSolvesForSelection,
 } from "./storage.js";
-import { formatTime } from "./utils.js";
+import { formatTime, applyPenalty } from "./utils.js";
 import { renderStats } from "./stats.js";
 import { renderCharts } from "./charts.js";
 
@@ -12,27 +13,19 @@ const solveEmpty = () => document.getElementById("solve-empty");
 const clearButton = () => document.getElementById("clear-solves");
 
 const getDisplayTime = (solve, precision) => {
-  if (solve.penalty === "dnf") {
+  const adjusted = applyPenalty(solve);
+  if (adjusted === null) {
     return "DNF";
   }
-
-  const adjusted =
-    solve.penalty === "plus2" ? solve.timeMs + 2000 : solve.timeMs;
   return formatTime(adjusted, precision);
 };
 
 export const renderSolves = () => {
-  const { solves, settings } = getState();
+  const { settings } = getState();
   const list = solveList();
   const emptyState = solveEmpty();
   const clear = clearButton();
-  const activeCube = settings.cubeType ?? "3x3";
-  const activeSession = settings.sessionId;
-  const filteredSolves = solves.filter(
-    (solve) =>
-      (solve.cubeType ?? "3x3") === activeCube &&
-      solve.sessionId === activeSession
-  );
+  const filteredSolves = getActiveSolves();
 
   if (!list) {
     return;

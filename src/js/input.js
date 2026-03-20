@@ -8,6 +8,7 @@ import {
 import { generateScramble } from "./scramble.js";
 import { cubeState } from "./state.js";
 import { toggleTimer, resetTimer, isTimerActive } from "./timer.js";
+import { isAnyPanelOpen } from "./panels.js";
 
 const CUBE_ROTATION_KEYS = {
   ArrowLeft: 0,
@@ -62,7 +63,9 @@ export const handleInput = (eventKey) => {
   }
 
   if (eventKey === "Escape" || eventKey === "Esc") {
-    resetTimer();
+    if (!isAnyPanelOpen()) {
+      resetTimer();
+    }
     return;
   }
 

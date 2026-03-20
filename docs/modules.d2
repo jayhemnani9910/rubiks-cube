@@ -1,0 +1,207 @@
+direction: down
+
+title: {
+  label: Rubik's Cube Timer — Module Dependencies
+  near: top-center
+  shape: text
+  style.font-size: 24
+  style.bold: true
+}
+
+# Entry point
+main.js: main.js\n(Entry Point) {
+  style.fill: "#fef3c7"
+  style.bold: true
+}
+
+# Core modules
+state.js: state.js\n(Constants, DIRECTION_INDEX,\nTRANSLATION_MATRIX) {
+  style.fill: "#dbeafe"
+}
+
+storage.js: storage.js\n(State CRUD,\ngetActiveSolves) {
+  style.fill: "#dbeafe"
+}
+
+utils.js: utils.js\n(formatTime, createId,\napplyPenalty, validateScramble) {
+  style.fill: "#dbeafe"
+}
+
+# Cube rendering
+cube.js: cube.js\n(Cube rendering,\nThree.js bridge) {
+  style.fill: "#dcfce7"
+}
+
+ThreeCube.js: ThreeCube.js\n(Three.js 3D impl) {
+  style.fill: "#dcfce7"
+}
+
+dynamic-cube.js: dynamic-cube.js\n(Logical cube state,\nmove application) {
+  style.fill: "#dcfce7"
+}
+
+preview.js: preview.js\n(2D net preview) {
+  style.fill: "#dcfce7"
+}
+
+# Gameplay
+scramble.js: scramble.js\n(Scramble generation) {
+  style.fill: "#f3e8ff"
+}
+
+cubes.js: cubes.js\n(Cube configs 2x2–7x7) {
+  style.fill: "#f3e8ff"
+}
+
+timer.js: timer.js\n(Timer + inspection) {
+  style.fill: "#f3e8ff"
+}
+
+input.js: input.js\n(Keyboard handler) {
+  style.fill: "#f3e8ff"
+}
+
+solver.js: solver.js\n(WASM solver) {
+  style.fill: "#f3e8ff"
+}
+
+solver-loader.js: solver-loader.js\n(WASM module loader) {
+  style.fill: "#f3e8ff"
+}
+
+# Data display
+stats.js: stats.js\n(Statistics computation) {
+  style.fill: "#fce7f3"
+}
+
+charts.js: charts.js\n(Chart.js integration) {
+  style.fill: "#fce7f3"
+}
+
+history.js: history.js\n(Solve list UI) {
+  style.fill: "#fce7f3"
+}
+
+sessions.js: sessions.js\n(Session CRUD UI) {
+  style.fill: "#fce7f3"
+}
+
+# UI & features
+panels.js: panels.js\n(Panel interactions) {
+  style.fill: "#f1f5f9"
+}
+
+settings.js: settings.js\n(Settings UI) {
+  style.fill: "#f1f5f9"
+}
+
+io.js: io.js\n(Import / Export) {
+  style.fill: "#f1f5f9"
+}
+
+leaderboard.js: leaderboard.js\n(Leaderboard UI) {
+  style.fill: "#f1f5f9"
+}
+
+tutorial.js: tutorial.js\n(Interactive lessons) {
+  style.fill: "#f1f5f9"
+}
+
+onboarding.js: onboarding.js\n(First-time walkthrough) {
+  style.fill: "#f1f5f9"
+}
+
+sound.js: sound.js\n(Web Audio tones) {
+  style.fill: "#f1f5f9"
+}
+
+pwa.js: pwa.js\n(Service Worker) {
+  style.fill: "#f1f5f9"
+}
+
+# main.js imports
+main.js -> input.js
+main.js -> cube.js
+main.js -> scramble.js
+main.js -> timer.js
+main.js -> settings.js
+main.js -> history.js
+main.js -> stats.js
+main.js -> charts.js
+main.js -> sessions.js
+main.js -> io.js
+main.js -> pwa.js
+main.js -> preview.js
+main.js -> leaderboard.js
+main.js -> tutorial.js
+main.js -> onboarding.js
+main.js -> solver.js
+main.js -> panels.js
+
+# Core dependencies
+cube.js -> state.js
+cube.js -> ThreeCube.js
+cube.js -> preview.js
+cube.js -> dynamic-cube.js
+cube.js -> utils.js
+
+input.js -> cube.js
+input.js -> scramble.js
+input.js -> timer.js
+input.js -> panels.js
+input.js -> state.js
+
+scramble.js -> state.js
+scramble.js -> cube.js
+scramble.js -> cubes.js
+scramble.js -> dynamic-cube.js
+scramble.js -> storage.js
+
+timer.js -> storage.js
+timer.js -> utils.js
+timer.js -> cubes.js
+timer.js -> sound.js
+
+dynamic-cube.js -> storage.js
+dynamic-cube.js -> state.js
+preview.js -> dynamic-cube.js
+
+# Data display dependencies
+stats.js -> storage.js
+stats.js -> utils.js
+charts.js -> storage.js
+charts.js -> utils.js
+history.js -> storage.js
+history.js -> utils.js
+history.js -> stats.js
+history.js -> charts.js
+sessions.js -> storage.js
+sessions.js -> history.js
+sessions.js -> stats.js
+sessions.js -> charts.js
+
+# Feature dependencies
+settings.js -> storage.js
+settings.js -> timer.js
+settings.js -> history.js
+settings.js -> stats.js
+settings.js -> charts.js
+settings.js -> cube.js
+settings.js -> scramble.js
+settings.js -> cubes.js
+settings.js -> leaderboard.js
+settings.js -> preview.js
+
+io.js -> storage.js
+io.js -> utils.js
+leaderboard.js -> storage.js
+leaderboard.js -> utils.js
+leaderboard.js -> cubes.js
+tutorial.js -> storage.js
+tutorial.js -> cube.js
+onboarding.js -> storage.js
+solver.js -> solver-loader.js
+solver.js -> cubes.js
+solver.js -> storage.js
+solver.js -> utils.js
+storage.js -> utils.js

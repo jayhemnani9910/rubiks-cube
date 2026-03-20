@@ -13,6 +13,13 @@ let isAnimating = false;
 let animationQueue = [];
 let currentSize = 3;
 let currentFaceConfig = null;
+let needsRender = true;
+let viewAnimationFrameId = null;
+// Reusable Matrix4 instances to avoid per-frame allocations
+let reusableMatrix1 = null;
+let reusableMatrix2 = null;
+// Shared material pool
+let sharedMaterials = null;
 
 // Configuration
 const CONFIG = {
@@ -101,6 +108,39 @@ const createRoundedBox = (size, radius, segments = 3) => {
 };
 
 /**
+ * Create or retrieve the shared material pool
+ */
+const getSharedMaterials = () => {
+  if (sharedMaterials) return sharedMaterials;
+
+  const createMaterial = (color, isSticker = true) => new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: isSticker ? 0.25 : 0.5,
+    metalness: 0.0,
+    flatShading: false,
+    envMapIntensity: 0.3,
+  });
+
+  sharedMaterials = {
+    right: createMaterial(COLORS.right, true),
+    left: createMaterial(COLORS.left, true),
+    up: createMaterial(COLORS.up, true),
+    down: createMaterial(COLORS.down, true),
+    front: createMaterial(COLORS.front, true),
+    back: createMaterial(COLORS.back, true),
+    inner: createMaterial(COLORS.inner, false),
+    edge: new THREE.LineBasicMaterial({
+      color: 0x111111,
+      linewidth: 1,
+      transparent: true,
+      opacity: 0.6,
+    }),
+  };
+
+  return sharedMaterials;
+};
+
+/**
  * Create a single cubie with colored faces and white edges
  */
 const createCubie = (x, y, z, size) => {
@@ -118,35 +158,22 @@ const createCubie = (x, y, z, size) => {
   const isFrontFace = Math.abs(z - half) < 0.01;
   const isBackFace = Math.abs(z + half) < 0.01;
 
-  // Create materials with realistic plastic sticker look
-  const createMaterial = (color, isSticker = true) => new THREE.MeshStandardMaterial({
-    color: color,
-    roughness: isSticker ? 0.25 : 0.5,   // Stickers are glossier
-    metalness: 0.0,                       // Non-metallic plastic
-    flatShading: false,
-    envMapIntensity: 0.3,                 // Subtle reflection
-  });
+  const mats = getSharedMaterials();
 
   const materials = [
-    createMaterial(isRightFace ? COLORS.right : COLORS.inner, isRightFace),  // +X
-    createMaterial(isLeftFace ? COLORS.left : COLORS.inner, isLeftFace),     // -X
-    createMaterial(isUpFace ? COLORS.up : COLORS.inner, isUpFace),           // +Y
-    createMaterial(isDownFace ? COLORS.down : COLORS.inner, isDownFace),     // -Y
-    createMaterial(isFrontFace ? COLORS.front : COLORS.inner, isFrontFace),  // +Z
-    createMaterial(isBackFace ? COLORS.back : COLORS.inner, isBackFace),     // -Z
+    isRightFace ? mats.right : mats.inner,  // +X
+    isLeftFace ? mats.left : mats.inner,     // -X
+    isUpFace ? mats.up : mats.inner,         // +Y
+    isDownFace ? mats.down : mats.inner,     // -Y
+    isFrontFace ? mats.front : mats.inner,   // +Z
+    isBackFace ? mats.back : mats.inner,     // -Z
   ];
 
   const mesh = new THREE.Mesh(geometry, materials);
 
   // Create subtle dark edge outline (like black plastic borders on real cubes)
-  const edgeGeometry = new THREE.EdgesGeometry(geometry, 20); // higher threshold = fewer edges
-  const edgeMaterial = new THREE.LineBasicMaterial({
-    color: 0x111111,      // Very dark gray (almost black)
-    linewidth: 1,
-    transparent: true,
-    opacity: 0.6,         // Subtle, not harsh
-  });
-  const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+  const edgeGeometry = new THREE.EdgesGeometry(geometry, 20);
+  const edges = new THREE.LineSegments(edgeGeometry, mats.edge);
 
   // Create a group to hold both mesh and edges
   const cubieGroup = new THREE.Group();
@@ -242,6 +269,7 @@ const animateFace = (face, clockwise = true) => {
     }
 
     isAnimating = true;
+    needsRender = true;
     if (!currentFaceConfig) {
       isAnimating = false;
       resolve();
@@ -339,21 +367,20 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
     rotationGroup.remove(piece);
     piece.position.set(newX, newY, newZ);
 
-    // Apply rotation to piece orientation
+    // Apply rotation to piece orientation using reusable matrices
     const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
-    const rotationMatrix = new THREE.Matrix4();
 
     if (config.axis === 'x') {
-      rotationMatrix.makeRotationX(targetAngle);
+      reusableMatrix1.makeRotationX(targetAngle);
     } else if (config.axis === 'y') {
-      rotationMatrix.makeRotationY(targetAngle);
+      reusableMatrix1.makeRotationY(targetAngle);
     } else {
-      rotationMatrix.makeRotationZ(targetAngle);
+      reusableMatrix1.makeRotationZ(targetAngle);
     }
 
-    const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
-    const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
-    piece.rotation.setFromRotationMatrix(combinedMatrix);
+    reusableMatrix2.makeRotationFromEuler(piece.rotation);
+    reusableMatrix1.multiply(reusableMatrix2);
+    piece.rotation.setFromRotationMatrix(reusableMatrix1);
 
     cubeGroup.add(piece);
   });
@@ -366,11 +393,18 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
  */
 const resetCube = () => {
   if (cubeGroup) {
+    // Dispose geometries from old pieces (materials are shared, don't dispose)
+    pieces.forEach(piece => {
+      piece.children.forEach(child => {
+        if (child.geometry) child.geometry.dispose();
+      });
+    });
     scene.remove(cubeGroup);
   }
   pieces = [];
   animationQueue = [];
   isAnimating = false;
+  needsRender = true;
   createCube(currentSize);
 
   // Reset view angle
@@ -392,10 +426,18 @@ export const rebuildCube = (newSize) => {
 const rotateCubeView = (axis, angle) => {
   if (!cubeGroup) return;
 
+  // Cancel any in-progress view rotation
+  if (viewAnimationFrameId) {
+    cancelAnimationFrame(viewAnimationFrameId);
+    viewAnimationFrameId = null;
+  }
+
   const duration = 250;
   const startTime = performance.now();
   const startRotation = cubeGroup.rotation[axis];
   const targetRotation = startRotation + angle;
+
+  needsRender = true;
 
   const animate = (currentTime) => {
     const elapsed = currentTime - startTime;
@@ -405,11 +447,14 @@ const rotateCubeView = (axis, angle) => {
     cubeGroup.rotation[axis] = startRotation + (targetRotation - startRotation) * eased;
 
     if (progress < 1) {
-      requestAnimationFrame(animate);
+      viewAnimationFrameId = requestAnimationFrame(animate);
+    } else {
+      viewAnimationFrameId = null;
+      needsRender = false;
     }
   };
 
-  requestAnimationFrame(animate);
+  viewAnimationFrameId = requestAnimationFrame(animate);
 };
 
 /**
@@ -419,6 +464,10 @@ export const initThreeCube = async (container, size = 3) => {
   await loadThree();
 
   currentSize = size;
+
+  // Initialize reusable matrix instances
+  reusableMatrix1 = new THREE.Matrix4();
+  reusableMatrix2 = new THREE.Matrix4();
 
   // Scene setup
   scene = new THREE.Scene();
@@ -467,10 +516,12 @@ export const initThreeCube = async (container, size = 3) => {
   cubeGroup.rotation.x = -0.4;
   cubeGroup.rotation.y = 0.6;
 
-  // Animation loop
+  // Animation loop — only renders when dirty
   const renderLoop = () => {
     requestAnimationFrame(renderLoop);
-    renderer.render(scene, camera);
+    if (needsRender || isAnimating) {
+      renderer.render(scene, camera);
+    }
   };
   renderLoop();
 
@@ -481,6 +532,7 @@ export const initThreeCube = async (container, size = 3) => {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    needsRender = true;
   };
   window.addEventListener('resize', handleResize);
 
@@ -535,19 +587,18 @@ const applyMoveInstant = (face, clockwise = true) => {
     };
     piece.position.set(roundToGrid(newX), roundToGrid(newY), roundToGrid(newZ));
 
-    // Apply rotation to piece orientation
-    const rotationMatrix = new THREE.Matrix4();
+    // Apply rotation to piece orientation using reusable matrices
     if (config.axis === 'x') {
-      rotationMatrix.makeRotationX(targetAngle);
+      reusableMatrix1.makeRotationX(targetAngle);
     } else if (config.axis === 'y') {
-      rotationMatrix.makeRotationY(targetAngle);
+      reusableMatrix1.makeRotationY(targetAngle);
     } else {
-      rotationMatrix.makeRotationZ(targetAngle);
+      reusableMatrix1.makeRotationZ(targetAngle);
     }
 
-    const existingMatrix = new THREE.Matrix4().makeRotationFromEuler(piece.rotation);
-    const combinedMatrix = rotationMatrix.clone().multiply(existingMatrix);
-    piece.rotation.setFromRotationMatrix(combinedMatrix);
+    reusableMatrix2.makeRotationFromEuler(piece.rotation);
+    reusableMatrix1.multiply(reusableMatrix2);
+    piece.rotation.setFromRotationMatrix(reusableMatrix1);
   });
 };
 
@@ -556,6 +607,7 @@ const applyMoveInstant = (face, clockwise = true) => {
  */
 export const applyScramble = (sequence) => {
   if (!THREE || !cubeGroup) return;
+  needsRender = true;
 
   sequence.forEach(token => {
     const base = token[0].toLowerCase();

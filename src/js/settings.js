@@ -74,6 +74,11 @@ const applyTheme = (theme, customTheme) => {
   document.documentElement.dataset.theme = effectiveTheme;
   clearCustomTheme();
 
+  // Re-apply custom theme colors if provided
+  if (customTheme && Object.keys(customTheme).length > 0) {
+    applyCustomTheme(customTheme);
+  }
+
   resetCube();
 
   // Restore scramble after theme change
@@ -181,6 +186,7 @@ export const initSettings = () => {
     });
   }
 
+  let themeDebounceTimer = null;
   THEME_FIELDS.forEach((field) => {
     const input = document.getElementById(field.id);
     if (!input) {
@@ -194,13 +200,18 @@ export const initSettings = () => {
         ...getState().settings.customTheme,
         [field.variable]: value,
       };
-      updateSettings({ customTheme: updated });
-      applyTheme("custom", updated);
-      renderCharts();
+      // Apply visual changes immediately
+      applyCustomTheme(updated);
+      // Debounce the expensive state save and chart re-render
+      clearTimeout(themeDebounceTimer);
+      themeDebounceTimer = setTimeout(() => {
+        updateSettings({ customTheme: updated });
+        renderCharts();
+      }, 300);
     });
   });
 
-  applyTheme(settings.theme, {});
+  applyTheme(settings.theme, settings.customTheme);
   updateCubeNote(settings.cubeType ?? "3x3");
   updateCubeLabel(settings.cubeType ?? "3x3");
   updateCubeMeta(settings.cubeType ?? "3x3");

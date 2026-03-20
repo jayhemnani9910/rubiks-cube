@@ -124,9 +124,20 @@ const saveState = () => {
 };
 
 export const updateState = (updater) => {
-  cachedState = mergeState(updater(mergeState(cachedState)));
+  cachedState = mergeState(updater(cachedState));
   saveState();
   return cachedState;
+};
+
+export const getActiveSolves = () => {
+  const { solves, settings } = cachedState;
+  const activeCube = settings.cubeType ?? "3x3";
+  const activeSession = settings.sessionId;
+  return solves.filter(
+    (solve) =>
+      (solve.cubeType ?? "3x3") === activeCube &&
+      solve.sessionId === activeSession
+  );
 };
 
 export const updateSettings = (partialSettings) =>

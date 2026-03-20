@@ -1,5 +1,5 @@
-import { getState, updateState } from "./storage.js";
-import { formatTime } from "./utils.js";
+import { getState, getActiveSolves, updateState } from "./storage.js";
+import { formatTime, applyPenalty } from "./utils.js";
 
 const exportJsonButton = () => document.getElementById("export-json");
 const exportCsvButton = () => document.getElementById("export-csv");
@@ -36,28 +36,21 @@ const escapeCsv = (value) => {
 };
 
 const formatSolveTime = (solve, precision) => {
-  if (solve.penalty === "dnf") {
+  const adjusted = applyPenalty(solve);
+  if (adjusted === null) {
     return "DNF";
   }
-  const base = solve.timeMs ?? 0;
-  const adjusted = solve.penalty === "plus2" ? base + 2000 : base;
   return formatTime(adjusted, precision);
 };
 
 const exportCsv = () => {
-  const { solves, settings, sessions } = getState();
-  const activeCube = settings.cubeType ?? "3x3";
-  const activeSession = settings.sessionId;
+  const { settings, sessions } = getState();
   const activeSessionName =
-    sessions.find((session) => session.id === activeSession)?.name ??
+    sessions.find((session) => session.id === settings.sessionId)?.name ??
     "Session";
   const precision = settings.precision;
 
-  const filtered = solves.filter(
-    (solve) =>
-      (solve.cubeType ?? "3x3") === activeCube &&
-      solve.sessionId === activeSession
-  );
+  const filtered = getActiveSolves();
 
   const header = [
     "session",

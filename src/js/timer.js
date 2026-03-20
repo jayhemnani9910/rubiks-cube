@@ -1,5 +1,5 @@
 import { addSolve, getState, updateSettings } from "./storage.js";
-import { createId, formatTime } from "./utils.js";
+import { createId, formatTime, EMPTY_SCRAMBLE } from "./utils.js";
 import { getCubeConfig } from "./cubes.js";
 import { playStartSound, playStopSound } from "./sound.js";
 
@@ -128,7 +128,7 @@ export const stopTimer = () => {
     id: createId(),
     timeMs: Math.round(elapsed),
     penalty: inspectionPenalty,
-    scramble: scramble && scramble !== "\u00A0" ? scramble : "",
+    scramble: scramble && scramble !== EMPTY_SCRAMBLE ? scramble : "",
     cubeType: getState().settings.cubeType,
     sessionId: getState().settings.sessionId,
     createdAt: new Date().toISOString(),
