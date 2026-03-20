@@ -235,63 +235,6 @@ export const resetCubeState = () => {
 };
 
 /**
- * Generate DOM for the 3D cube
- */
-export const generateCubeDOM = (container, size) => {
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  FACES.forEach((faceName) => {
-    const faceDiv = document.createElement("div");
-    faceDiv.className = faceName;
-
-    const letter = faceName[0];
-    for (let i = 0; i < size * size; i++) {
-      const part = document.createElement("div");
-      part.className = "part";
-      part.id = `${letter}${i + 1}`;
-      part.dataset.face = letter;
-      part.dataset.index = i;
-      faceDiv.appendChild(part);
-    }
-
-    container.appendChild(faceDiv);
-  });
-
-  // Update CSS grid for the size
-  container.style.setProperty("--cube-size", size);
-};
-
-/**
- * Generate DOM for the 2D plane cube
- */
-export const generatePlaneCubeDOM = (container, size) => {
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  FACES.forEach((faceName) => {
-    const faceDiv = document.createElement("div");
-    faceDiv.className = faceName;
-
-    const letter = faceName[0];
-    for (let i = 0; i < size * size; i++) {
-      const part = document.createElement("div");
-      part.className = "part";
-      part.id = `x${letter}${i + 1}`;
-      part.dataset.face = letter;
-      part.dataset.index = i;
-      faceDiv.appendChild(part);
-    }
-
-    container.appendChild(faceDiv);
-  });
-
-  container.style.setProperty("--cube-size", size);
-};
-
-/**
  * Generate DOM for the preview panel
  */
 export const generatePreviewDOM = (container, size) => {
@@ -318,27 +261,6 @@ export const generatePreviewDOM = (container, size) => {
   });
 
   container.style.setProperty("--preview-size", size);
-};
-
-/**
- * Sync DOM colors from cube state
- */
-export const syncDOMFromState = () => {
-  if (!cubeColors) return;
-
-  FACE_LETTERS.forEach((face) => {
-    cubeColors[face].forEach((color, index) => {
-      const id = `${face}${index + 1}`;
-
-      // 3D cube
-      const el = document.getElementById(id);
-      if (el && color) el.style.backgroundColor = color;
-
-      // 2D plane
-      const xel = document.getElementById(`x${id}`);
-      if (xel && color) xel.style.backgroundColor = color;
-    });
-  });
 };
 
 /**

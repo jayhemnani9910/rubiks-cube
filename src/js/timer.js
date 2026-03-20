@@ -1,5 +1,5 @@
-import { addSolve, getState, updateSettings } from "./storage.js";
-import { createId, formatTime, EMPTY_SCRAMBLE } from "./utils.js";
+import { addSolve, getState, getActiveSolves, updateSettings } from "./storage.js";
+import { createId, formatTime, applyPenalty, EMPTY_SCRAMBLE } from "./utils.js";
 import { getCubeConfig } from "./cubes.js";
 import { playStartSound, playStopSound } from "./sound.js";
 
@@ -7,6 +7,8 @@ let timerRunning = false;
 let timerStart = 0;
 let elapsed = 0;
 let timerFrame = null;
+let lastDisplayUpdate = 0;
+const DISPLAY_INTERVAL = 33; // ~30fps throttle for timer text updates
 
 let inspectionActive = false;
 let inspectionStart = 0;
@@ -71,7 +73,11 @@ const updateInspectionDisplay = () => {
 
 const animateTimer = () => {
   elapsed = performance.now() - timerStart;
-  updateTimerDisplay();
+  const now = performance.now();
+  if (now - lastDisplayUpdate >= DISPLAY_INTERVAL) {
+    updateTimerDisplay();
+    lastDisplayUpdate = now;
+  }
   timerFrame = requestAnimationFrame(animateTimer);
 };
 
@@ -111,12 +117,15 @@ const stopInspection = () => {
 export const startTimer = () => {
   timerRunning = true;
   timerStart = performance.now() - elapsed;
+  lastDisplayUpdate = 0;
   timerFrame = requestAnimationFrame(animateTimer);
+  document.body.classList.add("timing");
   playStartSound();
 };
 
 export const stopTimer = () => {
   timerRunning = false;
+  document.body.classList.remove("timing");
   if (timerFrame) {
     cancelAnimationFrame(timerFrame);
   }
@@ -124,9 +133,10 @@ export const stopTimer = () => {
   playStopSound();
 
   const scramble = document.getElementById("seq")?.textContent?.trim();
+  const solveTime = Math.round(elapsed);
   const solve = {
     id: createId(),
-    timeMs: Math.round(elapsed),
+    timeMs: solveTime,
     penalty: inspectionPenalty,
     scramble: scramble && scramble !== EMPTY_SCRAMBLE ? scramble : "",
     cubeType: getState().settings.cubeType,
@@ -134,7 +144,27 @@ export const stopTimer = () => {
     createdAt: new Date().toISOString(),
   };
 
+  // Check for PB before adding solve
+  const existingSolves = getActiveSolves();
+  const existingTimes = existingSolves
+    .map((s) => applyPenalty(s))
+    .filter((v) => v !== null);
+  const currentBest = existingTimes.length ? Math.min(...existingTimes) : Infinity;
+  const solveAdjusted = applyPenalty(solve);
+
   addSolve(solve);
+
+  // Visual feedback
+  const display = timerDisplay();
+  if (display) {
+    display.classList.add("timer-flash");
+    setTimeout(() => display.classList.remove("timer-flash"), 300);
+
+    if (solveAdjusted !== null && solveAdjusted < currentBest) {
+      display.classList.add("timer-pb");
+      setTimeout(() => display.classList.remove("timer-pb"), 1500);
+    }
+  }
 
   if (typeof onSolveCallback === "function") {
     onSolveCallback(solve);

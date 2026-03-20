@@ -3,10 +3,7 @@
  * Supports dynamic cube sizes (2x2 to 7x7) with smooth animations
  */
 
-// Import Three.js from CDN
-const THREE_CDN = "https://unpkg.com/three@0.160.0/build/three.module.js";
-
-let THREE = null;
+import * as THREE from 'three';
 let scene, camera, renderer, cubeGroup;
 let pieces = [];
 let isAnimating = false;
@@ -20,13 +17,16 @@ let reusableMatrix1 = null;
 let reusableMatrix2 = null;
 // Shared material pool
 let sharedMaterials = null;
+// Shared geometry to avoid O(n³) allocations
+let sharedGeometry = null;
+let sharedEdgeGeometry = null;
 
 // Configuration
 const CONFIG = {
   pieceSize: 0.88,       // Slightly smaller for more visible gaps
   pieceGap: 0.12,        // Gap between pieces
   cornerRadius: 0.06,    // Subtle rounded corners
-  animationDuration: 350, // Snappy animations
+  animationDuration: 180, // Crisp animations
   baseCameraDistance: 5,
 };
 
@@ -54,15 +54,6 @@ const getFaceConfig = (size) => {
     f: { axis: 'z', layer: half, direction: -1 },
     b: { axis: 'z', layer: -half, direction: 1 },
   };
-};
-
-/**
- * Load Three.js dynamically
- */
-const loadThree = async () => {
-  if (THREE) return THREE;
-  THREE = await import(THREE_CDN);
-  return THREE;
 };
 
 /**
@@ -143,14 +134,24 @@ const getSharedMaterials = () => {
 /**
  * Create a single cubie with colored faces and white edges
  */
+const getSharedGeometry = () => {
+  if (!sharedGeometry) {
+    sharedGeometry = createRoundedBox(CONFIG.pieceSize, CONFIG.cornerRadius);
+    sharedEdgeGeometry = new THREE.EdgesGeometry(sharedGeometry, 20);
+  }
+  return { geometry: sharedGeometry, edgeGeometry: sharedEdgeGeometry };
+};
+
+const disposeSharedGeometry = () => {
+  if (sharedGeometry) { sharedGeometry.dispose(); sharedGeometry = null; }
+  if (sharedEdgeGeometry) { sharedEdgeGeometry.dispose(); sharedEdgeGeometry = null; }
+};
+
 const createCubie = (x, y, z, size) => {
   const half = (size - 1) / 2;
-  const pieceSize = CONFIG.pieceSize;
 
-  // Use rounded box for better visuals
-  const geometry = createRoundedBox(pieceSize, CONFIG.cornerRadius);
+  const { geometry, edgeGeometry } = getSharedGeometry();
 
-  // Determine which faces should have colors based on position
   const isRightFace = Math.abs(x - half) < 0.01;
   const isLeftFace = Math.abs(x + half) < 0.01;
   const isUpFace = Math.abs(y - half) < 0.01;
@@ -161,18 +162,15 @@ const createCubie = (x, y, z, size) => {
   const mats = getSharedMaterials();
 
   const materials = [
-    isRightFace ? mats.right : mats.inner,  // +X
-    isLeftFace ? mats.left : mats.inner,     // -X
-    isUpFace ? mats.up : mats.inner,         // +Y
-    isDownFace ? mats.down : mats.inner,     // -Y
-    isFrontFace ? mats.front : mats.inner,   // +Z
-    isBackFace ? mats.back : mats.inner,     // -Z
+    isRightFace ? mats.right : mats.inner,
+    isLeftFace ? mats.left : mats.inner,
+    isUpFace ? mats.up : mats.inner,
+    isDownFace ? mats.down : mats.inner,
+    isFrontFace ? mats.front : mats.inner,
+    isBackFace ? mats.back : mats.inner,
   ];
 
   const mesh = new THREE.Mesh(geometry, materials);
-
-  // Create subtle dark edge outline (like black plastic borders on real cubes)
-  const edgeGeometry = new THREE.EdgesGeometry(geometry, 20);
   const edges = new THREE.LineSegments(edgeGeometry, mats.edge);
 
   // Create a group to hold both mesh and edges
@@ -305,14 +303,12 @@ const animateFace = (face, clockwise = true) => {
     const duration = CONFIG.animationDuration;
     const startTime = performance.now();
 
-    // Easing function (ease-out cubic)
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
-    // Animation loop
     const animate = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutCubic(progress);
+      const easedProgress = easeOutExpo(progress);
       const currentAngle = targetAngle * easedProgress;
 
       // Apply rotation based on axis
@@ -393,14 +389,9 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
  */
 const resetCube = () => {
   if (cubeGroup) {
-    // Dispose geometries from old pieces (materials are shared, don't dispose)
-    pieces.forEach(piece => {
-      piece.children.forEach(child => {
-        if (child.geometry) child.geometry.dispose();
-      });
-    });
     scene.remove(cubeGroup);
   }
+  disposeSharedGeometry();
   pieces = [];
   animationQueue = [];
   isAnimating = false;
@@ -432,7 +423,7 @@ const rotateCubeView = (axis, angle) => {
     viewAnimationFrameId = null;
   }
 
-  const duration = 250;
+  const duration = 150;
   const startTime = performance.now();
   const startRotation = cubeGroup.rotation[axis];
   const targetRotation = startRotation + angle;
@@ -442,7 +433,7 @@ const rotateCubeView = (axis, angle) => {
   const animate = (currentTime) => {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
+    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
 
     cubeGroup.rotation[axis] = startRotation + (targetRotation - startRotation) * eased;
 
@@ -461,8 +452,6 @@ const rotateCubeView = (axis, angle) => {
  * Initialize the Three.js scene
  */
 export const initThreeCube = async (container, size = 3) => {
-  await loadThree();
-
   currentSize = size;
 
   // Initialize reusable matrix instances
@@ -606,7 +595,7 @@ const applyMoveInstant = (face, clockwise = true) => {
  * Apply a full scramble sequence instantly
  */
 export const applyScramble = (sequence) => {
-  if (!THREE || !cubeGroup) return;
+  if (!cubeGroup) return;
   needsRender = true;
 
   sequence.forEach(token => {

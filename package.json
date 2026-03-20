@@ -10,7 +10,8 @@
     "build:wasm": "emcc src/wasm/solver.cpp -O3 -sENVIRONMENT=web -sEXPORT_ES6=1 -sMODULARIZE=1 -sEXPORTED_FUNCTIONS=['_validate_scramble','_get_hint'] -sEXPORTED_RUNTIME_METHODS=['cwrap'] -o src/wasm/solver.js"
   },
   "dependencies": {
-    "chart.js": "^4.4.1"
+    "chart.js": "^4.4.1",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"
