@@ -1,9 +1,17 @@
-:root {
-  /* Typography */
-  --font-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", monospace;
+/* ═══════════════════════════════════════════
+   EMBER GLASS — Design Tokens
+   Glassmorphism + Warm Neon on Obsidian
+   ═══════════════════════════════════════════ */
 
-  /* Spacing scale (4px base) */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ── Typography ── */
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-base: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", monospace;
+
+  /* ── Spacing (4px grid) ── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -14,48 +22,74 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Layout */
-  --header-height: 48px;
+  /* ── Layout ── */
+  --header-height: 52px;
   --panel-width: 380px;
 
-  /* Timing */
+  /* ── Motion ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 120ms;
   --duration-normal: 200ms;
-  --duration-slow: 300ms;
+  --duration-slow: 350ms;
+  --duration-glow: 600ms;
 
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* ── Radii ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 100px;
 
-  /* Colors — Dark theme (default) */
-  --color-bg: #09090b;
-  --color-surface: #18181b;
-  --color-surface-hover: #27272a;
-  --color-text: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-tertiary: #71717a;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(255, 255, 255, 0.16);
-  --color-overlay: rgba(0, 0, 0, 0.7);
-  --color-accent: #3b82f6;
+  /* ── Colors — Dark "Ember" (default) ── */
+  --color-bg: #0c0a09;
+  --color-bg-warm: #110e0c;
+  --color-surface: rgba(28, 25, 23, 0.55);
+  --color-surface-solid: #1c1917;
+  --color-surface-hover: rgba(41, 37, 36, 0.7);
+  --color-text: #fafaf9;
+  --color-text-secondary: #a8a29e;
+  --color-text-tertiary: #78716c;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-hover: rgba(255, 255, 255, 0.14);
+  --color-overlay: rgba(5, 3, 2, 0.75);
+
+  /* Accent: Amber ember */
+  --color-accent: #f59e0b;
+  --color-accent-dim: rgba(245, 158, 11, 0.15);
+  --color-accent-glow: rgba(245, 158, 11, 0.25);
+  --color-accent-subtle: rgba(245, 158, 11, 0.08);
+
+  /* Semantic */
   --color-danger: #ef4444;
   --color-success: #22c55e;
+  --color-focus: #818cf8;
 
-  /* Glass */
-  --glass-bg: rgba(24, 24, 27, 0.8);
+  /* ── Glassmorphism ── */
+  --glass-bg: rgba(28, 25, 23, 0.5);
+  --glass-bg-strong: rgba(28, 25, 23, 0.72);
   --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-blur: blur(20px);
+  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(16px);
+  --glass-blur-strong: blur(24px);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-panel: -4px 0 24px rgba(0, 0, 0, 0.5);
+  /* ── Glow Effects ── */
+  --glow-amber-sm: 0 0 12px rgba(245, 158, 11, 0.12);
+  --glow-amber-md: 0 0 24px rgba(245, 158, 11, 0.18);
+  --glow-amber-lg: 0 0 48px rgba(245, 158, 11, 0.22);
+  --glow-amber-text: 0 0 40px rgba(245, 158, 11, 0.2), 0 0 80px rgba(245, 158, 11, 0.08);
+  --glow-green: 0 0 30px rgba(34, 197, 94, 0.35);
+  --glow-green-text: 0 0 40px rgba(34, 197, 94, 0.3), 0 0 80px rgba(34, 197, 94, 0.1);
 
-  /* Cube face colors */
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-panel: -8px 0 40px rgba(0, 0, 0, 0.6);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ── Cube face colors ── */
   --face-front: #16a34a;
   --face-back: #2563eb;
   --face-up: #fafafa;
@@ -63,40 +97,53 @@
   --face-right: #dc2626;
   --face-left: #ea580c;
 
-  /* JS-referenced aliases (do not remove) */
+  /* ── JS-referenced aliases (do not remove) ── */
   --color-muted: var(--color-text-secondary);
-  --color-bg-start: #09090b;
-  --color-bg-end: #09090b;
-  --color-panel-bg-soft: rgba(0, 0, 0, 0.2);
-  --color-bg-elevated: var(--color-surface);
+  --color-bg-start: #0c0a09;
+  --color-bg-end: #0c0a09;
+  --color-panel-bg-soft: rgba(28, 25, 23, 0.3);
+  --color-bg-elevated: var(--color-surface-solid);
   --color-hover: var(--color-surface-hover);
-  --color-panel: var(--color-surface);
+  --color-panel: var(--color-surface-solid);
   --color-active: var(--color-surface-hover);
   --transition-speed: var(--duration-normal);
 }
 
+/* ── Light "Warm Ash" Theme ── */
 :root[data-theme="light"] {
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f4f4f5;
-  --color-text: #09090b;
-  --color-text-secondary: #52525b;
-  --color-text-tertiary: #a1a1aa;
-  --color-border: rgba(0, 0, 0, 0.08);
-  --color-border-hover: rgba(0, 0, 0, 0.16);
-  --color-overlay: rgba(0, 0, 0, 0.4);
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --shadow-panel: -4px 0 24px rgba(0, 0, 0, 0.15);
+  --color-bg: #faf8f6;
+  --color-bg-warm: #f5f0eb;
+  --color-surface: rgba(255, 255, 255, 0.65);
+  --color-surface-solid: #ffffff;
+  --color-surface-hover: rgba(245, 240, 235, 0.8);
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-tertiary: #a8a29e;
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-border-hover: rgba(0, 0, 0, 0.14);
+  --color-overlay: rgba(28, 25, 23, 0.45);
+  --color-accent: #d97706;
+  --color-accent-dim: rgba(217, 119, 6, 0.12);
+  --color-accent-glow: rgba(217, 119, 6, 0.18);
+  --color-accent-subtle: rgba(217, 119, 6, 0.06);
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-border-hover: rgba(0, 0, 0, 0.1);
+  --glow-amber-sm: 0 0 12px rgba(217, 119, 6, 0.08);
+  --glow-amber-md: 0 0 24px rgba(217, 119, 6, 0.12);
+  --glow-amber-lg: 0 0 48px rgba(217, 119, 6, 0.15);
+  --glow-amber-text: 0 0 30px rgba(217, 119, 6, 0.12);
+  --shadow-panel: -8px 0 40px rgba(0, 0, 0, 0.12);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
-  /* JS-referenced aliases (do not remove) */
   --color-muted: var(--color-text-secondary);
-  --color-bg-start: #fafafa;
-  --color-bg-end: #fafafa;
-  --color-panel-bg-soft: rgba(255, 255, 255, 0.6);
-  --color-bg-elevated: var(--color-surface);
+  --color-bg-start: #faf8f6;
+  --color-bg-end: #faf8f6;
+  --color-panel-bg-soft: rgba(255, 255, 255, 0.5);
+  --color-bg-elevated: var(--color-surface-solid);
   --color-hover: var(--color-surface-hover);
-  --color-panel: var(--color-surface);
+  --color-panel: var(--color-surface-solid);
   --color-active: var(--color-surface-hover);
 }
 
