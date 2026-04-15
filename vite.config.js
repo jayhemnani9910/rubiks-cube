@@ -5,8 +5,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ["three"],
+        manualChunks(id) {
+          if (id.includes("node_modules/three")) return "three";
         },
       },
     },

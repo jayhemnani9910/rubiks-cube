@@ -1,4 +1,4 @@
-import { getState, getActiveSolves } from "./storage.js";
+import { getState, getActiveSolves, getSessions } from "./storage.js";
 import { formatTime, applyPenalty, validateScramble } from "./utils.js";
 import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
 
@@ -75,6 +75,8 @@ const buildSubmissionUrl = () => {
   const { moves, scrambleLength } = getCubeConfig(cubeType);
   const verified = validateScramble(scramble, moves, scrambleLength) ? "Yes" : "No";
   const timeDisplay = best ? formatTime(best.adjusted, settings.precision) : "";
+  const activeSession =
+    getSessions().find((session) => session.id === settings.sessionId)?.name ?? "default";
 
   const title = `Leaderboard Submission - ${cubeType} - ${timeDisplay}`;
   const body = [
