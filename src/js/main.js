@@ -21,8 +21,16 @@ document.addEventListener("keydown", (event) => {
   if (tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA") {
     return;
   }
+  // Leave browser shortcuts (Ctrl/Cmd/Alt + key) alone
+  if (event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
   if (event.key.startsWith("Arrow") || event.code === "Space") {
     event.preventDefault();
+  }
+  // Held keys auto-repeat; only the arrow keys (view rotation) should
+  if (event.repeat && !event.key.startsWith("Arrow")) {
+    return;
   }
   handleInput(event.key);
 });

@@ -124,6 +124,7 @@ export const startTimer = () => {
 };
 
 export const stopTimer = () => {
+  elapsed = performance.now() - timerStart;
   timerRunning = false;
   document.body.classList.remove("timing");
   if (timerFrame) {
@@ -177,6 +178,7 @@ export const resetTimer = () => {
   timerRunning = false;
   elapsed = 0;
   inspectionPenalty = "ok";
+  document.body.classList.remove("timing");
 
   if (timerFrame) {
     cancelAnimationFrame(timerFrame);

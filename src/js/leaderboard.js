@@ -46,12 +46,19 @@ const renderLeaderboard = (cubeType) => {
     item.className = "leaderboard-item";
 
     const left = document.createElement("div");
-    left.innerHTML = `<div class="leaderboard-name">#${index + 1} ${entry.name}</div>`;
+    const label = document.createElement("div");
+    label.className = "leaderboard-name";
+    label.textContent = `#${index + 1} ${entry.name}`;
+    left.append(label);
 
     const right = document.createElement("div");
     right.className = "leaderboard-meta";
     const verified = entry.verified ? "✓" : "";
-    right.innerHTML = `${formatTime(entry.timeMs ?? 0, 3)} ${verified}<br>${entry.date ?? ""}`;
+    right.append(
+      `${formatTime(entry.timeMs ?? 0, 3)} ${verified}`,
+      document.createElement("br"),
+      entry.date ?? ""
+    );
 
     item.append(left, right);
     list.append(item);

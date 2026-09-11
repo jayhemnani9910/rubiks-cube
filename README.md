@@ -54,7 +54,6 @@ npm run dev
 - `assets/`: screenshots and images (repo/docs)
 - `public/`: static files for PWA + GitHub Pages (manifest, sw, icons, data)
 - `data/`: source JSON for leaderboard + tutorial content
-- `scripts/`: helper generator (`cube.cpp`, `cubeinput.txt`)
 
 ## Architecture
 See [`docs/architecture.svg`](./docs/architecture.svg) for a high-level overview, with companion views in [`docs/data-flow.svg`](./docs/data-flow.svg) and [`docs/modules.svg`](./docs/modules.svg). D2 sources live alongside each SVG.

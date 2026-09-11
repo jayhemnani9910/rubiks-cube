@@ -223,7 +223,7 @@ export const deleteSession = (sessionId) =>
 export const addSolve = (solve) =>
   updateState((state) => ({
     ...state,
-    solves: [solve, ...state.solves].slice(0, 200),
+    solves: [solve, ...state.solves].slice(0, 1000),
   }));
 
 export const updateSolvePenalty = (id, penalty) =>

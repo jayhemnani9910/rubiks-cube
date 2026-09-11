@@ -27,14 +27,7 @@ const validateScramble = () => {
     return;
   }
   const cubeType = getState().settings.cubeType ?? "3x3";
-
-  if (solverModule?.cwrap) {
-    const validate = solverModule.cwrap("validate_scramble", "number", ["string"]);
-    const valid = validate(scramble) === 1;
-    renderOutput(valid ? "Scramble validated (WASM)." : "Scramble invalid.");
-    return;
-  }
-
+  // WASM validate_scramble is still a stub that always returns 1, so use the JS check
   const { moves, scrambleLength } = getCubeConfig(cubeType);
   const valid = checkScrambleValid(scramble, moves, scrambleLength);
   renderOutput(valid ? "Scramble looks valid (JS check)." : "Scramble invalid.");

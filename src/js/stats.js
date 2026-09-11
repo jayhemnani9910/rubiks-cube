@@ -21,14 +21,16 @@ const computeAverageOf = (solves, count) => {
   const recent = solves.slice(0, count);
   const numeric = recent.map((solve) => applyPenalty(solve));
   const dnfCount = numeric.filter((value) => value === null).length;
+  // Trim 5% from each end: 1 for ao5/ao12, 5 for ao100
+  const trim = Math.ceil(count * 0.05);
 
-  if (dnfCount >= 2) {
+  if (dnfCount > trim) {
     return "DNF";
   }
 
   const sortable = numeric.map((value) => (value === null ? Infinity : value));
   sortable.sort((a, b) => a - b);
-  const trimmed = sortable.slice(1, -1);
+  const trimmed = sortable.slice(trim, -trim);
   if (!trimmed.length || trimmed.some((value) => !Number.isFinite(value))) {
     return "DNF";
   }

@@ -299,13 +299,19 @@ const animateFace = (face, clockwise = true) => {
     });
 
     // Animation parameters
-    const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
+    const targetAngle = (clockwise ? 1 : -1) * config.direction * Math.PI / 2;
     const duration = CONFIG.animationDuration;
     const startTime = performance.now();
 
     const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
     const animate = (currentTime) => {
+      // resetCube/rebuildCube replaced cubeGroup mid-turn: drop this stale turn
+      if (rotationGroup.parent !== cubeGroup) {
+        resolve();
+        return;
+      }
+
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutExpo(progress);
@@ -320,6 +326,7 @@ const animateFace = (face, clockwise = true) => {
         // Animation complete - finalize positions
         finishRotation(rotationGroup, facePieces, config, clockwise);
         isAnimating = false;
+        needsRender = true;
         resolve();
 
         // Process queue
@@ -364,7 +371,7 @@ const finishRotation = (rotationGroup, facePieces, config, clockwise) => {
     piece.position.set(newX, newY, newZ);
 
     // Apply rotation to piece orientation using reusable matrices
-    const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
+    const targetAngle = (clockwise ? 1 : -1) * config.direction * Math.PI / 2;
 
     if (config.axis === 'x') {
       reusableMatrix1.makeRotationX(targetAngle);
@@ -431,6 +438,7 @@ const rotateCubeView = (axis, angle) => {
   needsRender = true;
 
   const animate = (currentTime) => {
+    needsRender = true;
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
@@ -441,7 +449,6 @@ const rotateCubeView = (axis, angle) => {
       viewAnimationFrameId = requestAnimationFrame(animate);
     } else {
       viewAnimationFrameId = null;
-      needsRender = false;
     }
   };
 
@@ -510,6 +517,7 @@ export const initThreeCube = async (container, size = 3) => {
     requestAnimationFrame(renderLoop);
     if (needsRender || isAnimating) {
       renderer.render(scene, camera);
+      needsRender = false;
     }
   };
   renderLoop();
@@ -544,8 +552,8 @@ const applyMoveInstant = (face, clockwise = true) => {
   const facePieces = getPiecesForFace(face);
   if (facePieces.length === 0) return;
 
-  const targetAngle = (clockwise ? -1 : 1) * config.direction * Math.PI / 2;
-  const sign = (clockwise ? -1 : 1) * config.direction;
+  const targetAngle = (clockwise ? 1 : -1) * config.direction * Math.PI / 2;
+  const sign = (clockwise ? 1 : -1) * config.direction;
   const half = (currentSize - 1) / 2;
 
   const roundToGrid = (val) => {
@@ -610,18 +618,9 @@ export const applyScramble = (sequence) => {
   });
 };
 
-/**
- * Get current cube size
- */
-export const getCurrentSize = () => currentSize;
-
 // Export functions
 export const rotateFace = (face, prime = false) => {
   return animateFace(face, !prime);
-};
-
-export const rotateFacePrime = (face) => {
-  return animateFace(face, false);
 };
 
 export { resetCube, rotateCubeView };

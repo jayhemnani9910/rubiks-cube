@@ -20,3 +20,7 @@ npm-debug.log*
 
 # Vite cache
 .vite/
+
+# /audit outputs
+graphify-out/
+.audit/

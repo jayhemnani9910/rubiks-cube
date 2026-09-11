@@ -22,9 +22,14 @@ const refreshSessionOptions = () => {
   }
 
   const sessions = getSessions();
-  select.innerHTML = sessions
-    .map((session) => `<option value="${session.id}">${session.name}</option>`)
-    .join("");
+  select.replaceChildren(
+    ...sessions.map((session) => {
+      const option = document.createElement("option");
+      option.value = session.id;
+      option.textContent = session.name;
+      return option;
+    })
+  );
 
   select.value = getState().settings.sessionId ?? sessions[0]?.id ?? "";
 };
