@@ -137,7 +137,7 @@ const renderTutorial = () => {
   renderLessonList();
 };
 
-const openTutorial = () => {
+export const openTutorial = () => {
   const overlay = modal();
   if (!overlay) {
     return;

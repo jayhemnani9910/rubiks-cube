@@ -1,6 +1,6 @@
 import { EMPTY_SCRAMBLE } from "./utils.js";
 import { syncPreview } from "./preview.js";
-import { getCubeSize } from "./dynamic-cube.js";
+import { getCubeSize, resetCubeState } from "./dynamic-cube.js";
 import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble, rebuildCube } from "./three-cube/ThreeCube.js";
 
 let threeCube = null;
@@ -60,6 +60,7 @@ export const resetCube = () => {
     threeResetCube();
   }
 
+  resetCubeState();
   syncPreview();
 };
 

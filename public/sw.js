@@ -14,10 +14,16 @@ const STATIC_ASSETS = [
   "./data/tutorial.json"
 ];
 
+// The only HTML worth keeping for offline use
+const APP_SHELL = [
+  new URL("./", self.location).pathname,
+  new URL("./index.html", self.location).pathname,
+];
+
 // Check if request is for a hashed asset (Vite-generated)
 const isHashedAsset = (url) => {
   const pathname = new URL(url).pathname;
-  return pathname.includes("/assets/") && /\.[a-f0-9]{8}\.(js|css)$/i.test(pathname);
+  return pathname.includes("/assets/") && /-[A-Za-z0-9_-]{8}\.(js|css)$/.test(pathname);
 };
 
 self.addEventListener("install", (event) => {
@@ -52,8 +58,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", responseClone));
+          if (response.ok && APP_SHELL.includes(url.pathname)) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", responseClone));
+          }
           return response;
         })
         .catch(() => caches.match("./index.html"))
@@ -69,8 +77,10 @@ self.addEventListener("fetch", (event) => {
           return cached;
         }
         return fetch(event.request).then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
           return response;
         });
       })
@@ -83,8 +93,10 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
         .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
           return response;
         })
         .catch(() => cached || caches.match("./index.html"));

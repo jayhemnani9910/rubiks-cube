@@ -2,11 +2,17 @@ import { resetCube, applyScrambleToThreeCube } from "./cube.js";
 import { getState } from "./storage.js";
 import { buildScramble, getCubeConfig } from "./cubes.js";
 import {
-  resetCubeState,
   applyMoveToState,
   syncPreviewFromState,
   getCubeSize,
 } from "./dynamic-cube.js";
+
+export const updateCubeNote = () => {
+  const cubeNote = document.getElementById("cube-note");
+  if (cubeNote) {
+    cubeNote.classList.toggle("hide", getCubeSize() <= 3);
+  }
+};
 
 export const generateScramble = () => {
   const { cubeType } = getState().settings;
@@ -14,7 +20,6 @@ export const generateScramble = () => {
   const config = getCubeConfig(cubeType);
 
   resetCube();
-  resetCubeState();
 
   // Apply moves to logical state
   sequence.forEach((token) => {
@@ -26,10 +31,7 @@ export const generateScramble = () => {
 
   syncPreviewFromState();
 
-  const cubeNote = document.getElementById("cube-note");
-  if (cubeNote) {
-    cubeNote.classList.toggle("hide", getCubeSize() <= 3);
-  }
+  updateCubeNote();
 
   const sequenceElement = document.getElementById("seq");
   if (sequenceElement) {

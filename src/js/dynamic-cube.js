@@ -7,11 +7,9 @@ import { getState } from "./storage.js";
 import { getFaceColors } from "./state.js";
 
 // Face names in standard order
-export const FACES = ["right", "left", "up", "down", "front", "back"];
 export const FACE_LETTERS = ["r", "l", "u", "d", "f", "b"];
 
 // Current cube state (logical representation)
-let cubeSize = 3;
 let cubeColors = null; // 6 faces, each NxN array of colors
 
 /**
@@ -26,7 +24,6 @@ export const getCubeSize = () => {
  * Initialize cube colors to solved state
  */
 export const initCubeColors = (size) => {
-  cubeSize = size;
   const faceColors = getFaceColors();
   cubeColors = {};
 
@@ -46,14 +43,6 @@ export const initCubeColors = (size) => {
 const getIndex = (row, col, size) => row * size + col;
 
 /**
- * Get row and column from index
- */
-const getRowCol = (index, size) => ({
-  row: Math.floor(index / size),
-  col: index % size,
-});
-
-/**
  * Rotate a face clockwise (just the face, not the sides)
  * For a 90-degree clockwise rotation:
  * new[col][size-1-row] = old[row][col]
@@ -64,23 +53,6 @@ const rotateFaceClockwise = (faceArray, size) => {
     for (let col = 0; col < size; col++) {
       const oldIndex = getIndex(row, col, size);
       const newIndex = getIndex(col, size - 1 - row, size);
-      newFace[newIndex] = faceArray[oldIndex];
-    }
-  }
-  return newFace;
-};
-
-/**
- * Rotate a face counter-clockwise (direct computation)
- * For a 90-degree counter-clockwise rotation:
- * new[size-1-col][row] = old[row][col]
- */
-const rotateFaceCounterClockwise = (faceArray, size) => {
-  const newFace = [...faceArray];
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      const oldIndex = getIndex(row, col, size);
-      const newIndex = getIndex(size - 1 - col, row, size);
       newFace[newIndex] = faceArray[oldIndex];
     }
   }
@@ -144,15 +116,15 @@ const getSideEffects = (face, depth, size) => {
     ],
     f: [
       { face: "u", indices: getRow(size - 1 - d, size), reverse: false },
-      { face: "r", indices: getCol(d, size), reverse: true },
-      { face: "d", indices: getRow(d, size), reverse: false },
+      { face: "r", indices: getCol(d, size), reverse: false },
+      { face: "d", indices: getRow(d, size), reverse: true },
       { face: "l", indices: getCol(size - 1 - d, size), reverse: true },
     ],
     b: [
       { face: "u", indices: getRow(d, size), reverse: true },
       { face: "l", indices: getCol(d, size), reverse: false },
-      { face: "d", indices: getRow(size - 1 - d, size), reverse: true },
-      { face: "r", indices: getCol(size - 1 - d, size), reverse: false },
+      { face: "d", indices: getRow(size - 1 - d, size), reverse: false },
+      { face: "r", indices: getCol(size - 1 - d, size), reverse: true },
     ],
   };
 
@@ -219,14 +191,6 @@ export const applyMoveToState = (token) => {
 };
 
 /**
- * Get the current color of a piece
- */
-export const getPieceColor = (face, index) => {
-  if (!cubeColors || !cubeColors[face]) return null;
-  return cubeColors[face][index];
-};
-
-/**
  * Reset cube to solved state
  */
 export const resetCubeState = () => {
@@ -284,17 +248,4 @@ export const syncPreviewFromState = () => {
       cell.style.backgroundColor = cubeColors[face][index];
     }
   });
-};
-
-/**
- * Get the current cube size
- */
-export const getCurrentSize = () => cubeSize;
-
-/**
- * Check if current cube type supports visualization
- */
-export const supportsVisualization = () => {
-  const size = getCubeSize();
-  return size >= 2 && size <= 7;
 };

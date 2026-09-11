@@ -5,7 +5,7 @@ import { renderStats } from "./stats.js";
 import { renderCharts } from "./charts.js";
 import { refreshLeaderboard } from "./leaderboard.js";
 import { resetCube, rebuildThreeCube } from "./cube.js";
-import { generateScramble } from "./scramble.js";
+import { generateScramble, updateCubeNote } from "./scramble.js";
 import { CUBE_TYPES, getCubeConfig } from "./cubes.js";
 import { rebuildPreview } from "./preview.js";
 
@@ -39,12 +39,10 @@ const THEME_FIELDS = [
 ];
 
 const themeSelect = () => document.getElementById("theme-select");
-const customPanel = () => document.getElementById("custom-theme-panel");
 const inspectionToggle = () => document.getElementById("inspection-toggle");
 const soundToggle = () => document.getElementById("sound-toggle");
 const precisionSelect = () => document.getElementById("precision-select");
 const cubeSelect = () => document.getElementById("cube-select");
-const cubeNote = () => document.getElementById("cube-note");
 const cubeLabel = () => document.getElementById("cube-label");
 const cubeScramble = () => document.getElementById("cube-scramble");
 const cubeInspection = () => document.getElementById("cube-inspection");
@@ -65,35 +63,15 @@ const clearCustomTheme = () => {
 };
 
 const applyTheme = (theme, customTheme) => {
-  // Preserve current scramble before theme change
-  const scrambleEl = document.getElementById("seq");
-  const currentScramble = scrambleEl?.textContent;
-
   // Migrate legacy "custom" theme to "dark"
   const effectiveTheme = theme === "custom" ? "dark" : theme;
   document.documentElement.dataset.theme = effectiveTheme;
   clearCustomTheme();
 
-  // Re-apply custom theme colors if provided
-  if (customTheme && Object.keys(customTheme).length > 0) {
+  // Re-apply custom theme colors only when the user actually chose the Custom theme
+  if (theme === "custom" && customTheme && Object.keys(customTheme).length > 0) {
     applyCustomTheme(customTheme);
   }
-
-  resetCube();
-
-  // Restore scramble after theme change
-  if (scrambleEl && currentScramble && currentScramble !== "\u00A0") {
-    scrambleEl.textContent = currentScramble;
-  }
-};
-
-const updateCubeNote = (cubeType) => {
-  const note = cubeNote();
-  if (!note) {
-    return;
-  }
-
-  note.classList.toggle("hide", cubeType === "3x3");
 };
 
 const updateCubeLabel = (cubeType) => {
@@ -180,7 +158,6 @@ export const initSettings = () => {
       renderStats();
       renderCharts();
       refreshLeaderboard();
-      updateCubeNote(value);
       updateCubeLabel(value);
       updateCubeMeta(value);
     });
@@ -212,7 +189,7 @@ export const initSettings = () => {
   });
 
   applyTheme(settings.theme, settings.customTheme);
-  updateCubeNote(settings.cubeType ?? "3x3");
+  updateCubeNote();
   updateCubeLabel(settings.cubeType ?? "3x3");
   updateCubeMeta(settings.cubeType ?? "3x3");
 };

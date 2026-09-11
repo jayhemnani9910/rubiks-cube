@@ -1,9 +1,10 @@
 export const formatTime = (milliseconds, precision = 3) => {
   const safePrecision = Number.isFinite(precision) ? precision : 3;
-  const totalSeconds = Math.max(0, milliseconds) / 1000;
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds - minutes * 60;
-  const secondsText = seconds.toFixed(safePrecision);
+  // Round once to the shown precision so seconds never display as 60
+  const scale = 10 ** safePrecision;
+  const totalUnits = Math.round((Math.max(0, milliseconds) / 1000) * scale);
+  const minutes = Math.floor(totalUnits / (60 * scale));
+  const secondsText = ((totalUnits - minutes * 60 * scale) / scale).toFixed(safePrecision);
   const paddedSeconds = secondsText.padStart(
     safePrecision > 0 ? 3 + safePrecision : 2,
     "0"

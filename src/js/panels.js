@@ -2,6 +2,8 @@
  * Panel interactions - slide panels, tabs, overlay
  */
 
+import { openTutorial } from "./tutorial.js";
+
 const settingsPanel = () => document.getElementById("settings-panel");
 const statsPanel = () => document.getElementById("stats-panel");
 const menuPanel = () => document.getElementById("menu-panel");
@@ -108,10 +110,7 @@ export const initPanels = () => {
   if (menuTutorial) {
     menuTutorial.addEventListener("click", () => {
       closeAllPanels();
-      const tutorialModal = document.getElementById("tutorial-modal");
-      if (tutorialModal) {
-        tutorialModal.classList.remove("hide");
-      }
+      openTutorial();
     });
   }
 
