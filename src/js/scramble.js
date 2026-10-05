@@ -27,7 +27,7 @@ export const generateScramble = () => {
   });
 
   // Apply scramble to Three.js cube
-  applyScrambleToThreeCube(sequence.filter(t => !t.includes("w")));
+  applyScrambleToThreeCube(sequence);
 
   syncPreviewFromState();
 

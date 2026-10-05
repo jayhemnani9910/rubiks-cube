@@ -60,4 +60,5 @@ renderStats();
 initCharts();
 renderCharts();
 
-initCube();
+// Scramble once the 3D cube exists, so it gets the moves too
+initCube().then(generateScramble);

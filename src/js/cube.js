@@ -1,6 +1,6 @@
 import { EMPTY_SCRAMBLE } from "./utils.js";
 import { syncPreview } from "./preview.js";
-import { getCubeSize, resetCubeState } from "./dynamic-cube.js";
+import { getCubeSize, resetCubeState, applyMoveToState } from "./dynamic-cube.js";
 import { initThreeCube, rotateFace as threeRotateFace, resetCube as threeResetCube, rotateCubeView, applyScramble as threeApplyScramble, rebuildCube } from "./three-cube/ThreeCube.js";
 
 let threeCube = null;
@@ -35,12 +35,16 @@ export const rotateFace = (key) => {
   if (threeCube) {
     threeRotateFace(key.toLowerCase(), false);
   }
+  applyMoveToState(key.toUpperCase());
+  syncPreview();
 };
 
 export const rotateFacePrime = (key) => {
   if (threeCube) {
     threeRotateFace(key.toLowerCase(), true);
   }
+  applyMoveToState(`${key.toUpperCase()}'`);
+  syncPreview();
 };
 
 export const rotateCube = (directionIndex) => {

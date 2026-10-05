@@ -19,8 +19,7 @@ let onSolveCallback = null;
 
 const timerDisplay = () => document.getElementById("timer");
 const inspectionDisplay = () => document.getElementById("inspection");
-const timerToggleButton = () => document.querySelector(".timer-toggle");
-const timerResetButton = () => document.querySelector(".timer-reset");
+const timerArea = () => document.querySelector(".timer-area");
 
 const updateTimerDisplay = () => {
   const display = timerDisplay();
@@ -243,13 +242,6 @@ export const initTimer = ({ onSolve } = {}) => {
   onSolveCallback = onSolve ?? null;
   updateTimerDisplay();
 
-  const toggleButton = timerToggleButton();
-  if (toggleButton) {
-    toggleButton.addEventListener("click", toggleTimer);
-  }
-
-  const resetButton = timerResetButton();
-  if (resetButton) {
-    resetButton.addEventListener("click", resetTimer);
-  }
+  // Touch devices have no Space key, so tapping the timer toggles it
+  timerArea()?.addEventListener("pointerdown", toggleTimer);
 };

@@ -84,6 +84,9 @@ const importJson = (file) => {
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
+      if (!Array.isArray(parsed?.solves)) {
+        throw new Error("Not a solves export");
+      }
       updateState(() => parsed);
       window.location.reload();
     } catch (error) {
