@@ -9,7 +9,7 @@ const skipButton = () => document.getElementById("onboarding-skip");
 const steps = [
   {
     title: "Welcome",
-    text: "Use Space to start/stop the timer. Press G to generate a scramble.",
+    text: "Press Space or tap the timer to start and stop. Press G or the refresh button for a new scramble.",
   },
   {
     title: "Sessions",
@@ -17,7 +17,7 @@ const steps = [
   },
   {
     title: "Themes",
-    text: "Switch themes or create a custom palette from Settings.",
+    text: "Switch between dark and light themes in Settings.",
   },
 ];
 

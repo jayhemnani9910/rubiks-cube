@@ -242,9 +242,9 @@ const updateCameraForSize = (size) => {
 };
 
 /**
- * Get pieces belonging to a face
+ * Get pieces belonging to a face, plus the inner layers for wide moves (depth > 1)
  */
-const getPiecesForFace = (face) => {
+const getPiecesForFace = (face, depth = 1) => {
   if (!currentFaceConfig) return [];
   const config = currentFaceConfig[face.toLowerCase()];
   if (!config) return [];
@@ -252,7 +252,7 @@ const getPiecesForFace = (face) => {
   const tolerance = 0.01;
   return pieces.filter(piece => {
     const pos = piece.userData.cubePos;
-    return Math.abs(pos[config.axis] - config.layer) < tolerance;
+    return Math.abs(pos[config.axis] - config.layer) < depth - 1 + tolerance;
   });
 };
 
@@ -544,12 +544,12 @@ export const initThreeCube = async (container, size = 3) => {
 /**
  * Apply a move instantly (for scrambles)
  */
-const applyMoveInstant = (face, clockwise = true) => {
+const applyMoveInstant = (face, clockwise = true, depth = 1) => {
   if (!currentFaceConfig) return;
   const config = currentFaceConfig[face.toLowerCase()];
   if (!config) return;
 
-  const facePieces = getPiecesForFace(face);
+  const facePieces = getPiecesForFace(face, depth);
   if (facePieces.length === 0) return;
 
   const targetAngle = (clockwise ? 1 : -1) * config.direction * Math.PI / 2;
@@ -607,13 +607,15 @@ export const applyScramble = (sequence) => {
   needsRender = true;
 
   sequence.forEach(token => {
-    const base = token[0].toLowerCase();
-    const isPrime = token.includes("'");
-    const isDouble = token.includes("2");
-    const turns = isDouble ? 2 : 1;
+    // Same token grammar as applyMoveToState: R, R', R2, Rw, 3Rw'
+    const match = token.match(/^(\d)?([RLUDFB])(w)?([2'])?$/i);
+    if (!match) return;
+    const [, depthStr, face, wide, modifier] = match;
+    const depth = wide ? parseInt(depthStr, 10) || 2 : 1;
+    const turns = modifier === "2" ? 2 : 1;
 
     for (let i = 0; i < turns; i++) {
-      applyMoveInstant(base, !isPrime);
+      applyMoveInstant(face.toLowerCase(), modifier !== "'", depth);
     }
   });
 };

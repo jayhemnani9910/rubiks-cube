@@ -163,31 +163,6 @@ export const initSettings = () => {
     });
   }
 
-  let themeDebounceTimer = null;
-  THEME_FIELDS.forEach((field) => {
-    const input = document.getElementById(field.id);
-    if (!input) {
-      return;
-    }
-
-    input.value = settings.customTheme[field.variable] ?? "";
-    input.addEventListener("input", (event) => {
-      const value = event.target.value;
-      const updated = {
-        ...getState().settings.customTheme,
-        [field.variable]: value,
-      };
-      // Apply visual changes immediately
-      applyCustomTheme(updated);
-      // Debounce the expensive state save and chart re-render
-      clearTimeout(themeDebounceTimer);
-      themeDebounceTimer = setTimeout(() => {
-        updateSettings({ customTheme: updated });
-        renderCharts();
-      }, 300);
-    });
-  });
-
   applyTheme(settings.theme, settings.customTheme);
   updateCubeNote();
   updateCubeLabel(settings.cubeType ?? "3x3");

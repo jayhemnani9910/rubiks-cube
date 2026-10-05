@@ -1,4 +1,5 @@
 import { createId } from "./utils.js";
+import { CUBE_CONFIG } from "./cubes.js";
 
 const STORAGE_KEY = "rubiksCubeState";
 
@@ -48,6 +49,10 @@ const mergeState = (state) => {
       ...(state?.settings?.customTheme ?? {}),
     },
   };
+  // A bad saved or imported cubeType breaks the cube on every load
+  if (!Object.hasOwn(CUBE_CONFIG, settings.cubeType)) {
+    settings.cubeType = DEFAULT_STATE.settings.cubeType;
+  }
   const tutorial = {
     ...DEFAULT_STATE.tutorial,
     ...(state?.tutorial ?? {}),
