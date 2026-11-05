@@ -1,73 +1,66 @@
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open-2ea44f?style=for-the-badge)](https://jayhemnani9910.github.io/rubiks-cube/)
+# Rubik's Cube Visualizer + Timer
+
+![The app turning faces, scrambling a 5x5, timing a solve and showing stats](./docs/demo.gif)
+
+A speedcubing timer in your browser that shows each scramble on a 3D cube, from 2x2 to 7x7.
+
+```bash
+git clone https://github.com/jayhemnani9910/rubiks-cube.git && cd rubiks-cube && npm install && npm run dev
+```
+
+Needs Node 20.19+ or 22.12+. Or skip the install and use the [live version](https://jayhemnani9910.github.io/rubiks-cube/).
+
 [![CI](https://github.com/jayhemnani9910/rubiks-cube/actions/workflows/ci.yml/badge.svg)](https://github.com/jayhemnani9910/rubiks-cube/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-# Rubik's Cube Visualizer + Timer
-A keyboard-first Rubik's Cube visualizer with scrambles, a configurable timer, and a full stats workflow.
+The times in the GIF come from a script pressing Space, not from a person solving a cube.
 
-## Features
-- 3D cube with face turns and cube rotations
-- Dynamic cube sizes (2x2–7x7) with visual scramble preview
-- WCA-style inspection timer (+2/DNF) with precision and optional sounds
-- Solve history + stats (best, worst, mean, Ao5, Ao12, Ao100) per cube and session
-- Session management (create, rename, delete)
-- PB progression timeline
-- Trend and histogram charts powered by Chart.js
-- JSON export/import and CSV export
-- Leaderboard UI backed by `data/leaderboard.json`
-- Tutorial mode + onboarding overlay
-- PWA-ready manifest + offline cache + install prompt
-- Theme switcher (Dark/Light/Custom)
-- Toggleable flat (2D) view
+## Usage
 
-## Preview
-![main-cube](./assets/main.png)
-![scrambled-cube](./assets/cube.png)
-![flat-view](./assets/flat.png)
+Press `g` for a scramble, `Space` to start inspection, `Space` again to start the timer, and `Space` to stop. On a touch screen, tap the timer instead.
 
-## Getting Started
+| Key | Action |
+| --- | --- |
+| `r` `l` `u` `d` `f` `b` | Turn a face clockwise |
+| `Shift` + face key | Turn it counter-clockwise |
+| Arrow keys | Rotate the view |
+| `g` | New scramble |
+| `z` | Reset the cube and clear the scramble |
+| `Space` | Inspection, start, stop |
+| `Escape` | Reset the timer, or close an open panel |
 
-### Option 1: Open the HTML directly
-Open `index.html` in a browser to use the visualizer immediately.
+Pick the cube size at the top of the page. Everything else is in the two panels on the right:
 
-### Option 2: Run the dev server (recommended)
-```bash
-npm install
-npm run dev
-```
+- **Stats:** best, worst, mean, Ao5, Ao12, Ao100, your last 10 personal bests, solve history, a trend chart and a histogram. Each cube size and session has its own numbers, and Clear Session wipes only the ones you're looking at.
+- **Settings:** inspection, sounds, dark or light theme, 2 or 3 decimals, sessions (new, rename, delete), the tutorial, and JSON export and import. Import replaces the data in your browser.
 
-## Controls
-- Face moves: `l u r d f b`
-- Prime (counter-clockwise): `Shift + l/u/r/d/f/b`
-- Cube rotation: Arrow keys
-- Scramble: `g`
-- Reset cube: `z`
-- Toggle view: `v`
-- Start animation: `a`
-- Stop animation: `Shift + a`
-- Timer start/stop: `Space`
-- Timer reset: `Escape`
+## How it works
 
-## Project Structure
-- `src/js/`: ES modules for cube state, input handling, timer, scrambles, settings, stats, charts, sessions, storage, IO, tutorial, and PWA
-- `src/css/`: main CSS entry point, theme variables, and component styles
-- `assets/`: screenshots and images (repo/docs)
-- `public/`: static files for PWA + GitHub Pages (manifest, sw, icons, data)
-- `data/`: source JSON for leaderboard + tutorial content
+It's a static Vite app with no backend. Three.js draws the cube and Chart.js draws the charts.
 
-## Architecture
-See [`docs/architecture.svg`](./docs/architecture.svg) for a high-level overview, with companion views in [`docs/data-flow.svg`](./docs/data-flow.svg) and [`docs/modules.svg`](./docs/modules.svg). D2 sources live alongside each SVG.
+**Scrambles** are random moves from a list for each size. Two moves in a row never share an axis.
+
+| Cube | Moves | Move set |
+| --- | --- | --- |
+| 2x2 | 11 | R U F |
+| 3x3 | 20 | R L U D F B |
+| 4x4, 5x5 | 40, 60 | adds wide moves (Rw) |
+| 6x6, 7x7 | 80, 100 | adds triple-wide moves (3Rw) |
+
+**Inspection** follows WCA timing: 15 seconds, then +2 up to 17 seconds, then DNF.
+
+**Averages** drop the top and bottom 5%, rounded up. That's one solve from each end for Ao5 and Ao12, five for Ao100. Too many DNFs makes the average a DNF.
+
+**Your data** stays in `localStorage`. There's no account, and your times don't leave your browser unless you export them.
+
+**Offline:** a service worker caches the app, and you can install it as a PWA. Offline only works from your second visit on, because the worker caches the JS and CSS when it sees them requested.
+
+Diagrams: [architecture](./docs/architecture.svg), [data flow](./docs/data-flow.svg), [modules](./docs/modules.svg). The D2 sources sit next to them.
 
 ## Contributing
-Contributions are welcome. See [`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md) for setup and style guidelines, and [`.github/SECURITY.md`](./.github/SECURITY.md) for reporting vulnerabilities.
 
-## License
-[MIT](./LICENSE)
+See [CONTRIBUTING.md](./.github/CONTRIBUTING.md). To report a vulnerability, see [SECURITY.md](./.github/SECURITY.md).
 
-## Notes
-- Theme changes reset the cube to ensure colors update consistently.
-- On-screen cube controls are hidden on wide screens by default. To keep them visible, set `.buttons` to `visibility: visible;` in `src/css/main.css`.
-- The Clear button removes solves for the currently selected cube and session.
-- Charts require Chart.js, installed via `npm install`.
-- Importing JSON overwrites your local browser data.
-- Service worker registration happens only on `http(s)` origins, not `file://`.
+## Credits and license
+
+MIT, see [LICENSE](./LICENSE). This repo started from Vasu Gondaliya's [cube project](https://github.com/vasu-gondaliya/rubiks-cube), and his copyright notice stays in the license.
