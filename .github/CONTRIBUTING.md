@@ -1,8 +1,10 @@
 # Contributing to rubiks-cube
 
-Thanks for your interest! This project is a static PWA — visualizer, WCA-style timer, and stats — built with Vite, Three.js, and Chart.js.
+I try to reply to issues within a few days.
 
-## Development Setup
+## Setup
+
+You need Node 20.19+ or 22.12+.
 
 ```bash
 git clone https://github.com/jayhemnani9910/rubiks-cube.git
@@ -11,33 +13,40 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite. Edits hot-reload.
+Open the URL Vite prints. Edits hot-reload. Opening `index.html` directly won't work, because browsers block ES modules on `file://`.
 
-## Project Layout
+## Layout
 
-- `src/js/` — ES modules (cube state, input, timer, scrambles, stats, storage, PWA, etc.)
-- `src/css/` — theme variables and component styles
-- `public/` — static assets shipped to the deployed site (manifest, service worker, icons)
-- `docs/` — architecture diagrams (`.d2` sources + rendered SVGs)
+- `src/js/`: ES modules for the cube, input, timer, scrambles, stats, storage and PWA
+- `src/css/`: theme variables and styles
+- `public/`: files shipped as they are (manifest, service worker, icons, data)
+- `test/`: tests for the pure functions
+- `docs/`: diagrams (D2 sources and SVGs) and the demo GIF
 
-See `docs/architecture.svg` for a high-level overview.
+## Checks
 
-## Making Changes
+CI runs these three on every pull request. Run them before you open one:
 
-1. Fork the repo and create a feature branch (`feat/short-description` or `fix/short-description`).
-2. Keep commits focused. Match the existing commit-message style — a short imperative summary (e.g. `fix: cube cut-off on larger sizes`).
-3. Before opening a PR:
-   - `npm run build` must succeed.
-   - `npm run lint` must pass without errors.
-   - If you changed formatting-sensitive files, run `npm run format`.
-4. Test the change in a browser. There is no automated test suite yet — describe what you verified in the PR.
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+The tests only cover scrambles and time formatting. For anything else, try it in a browser and say what you checked in the PR.
 
 ## Style
 
-- 2-space indent, single quotes, semicolons.
-- ES module syntax (`import` / `export`).
-- Prefer small, pure helpers in `src/js/utils.js` over duplicating logic.
+- Prettier settings are in `.prettierrc.json`. Not every file follows them yet, and `npm run format` rewrites all of them, so format only what you touched: `npx prettier --write <file>`.
+- Use `import` and `export`.
+- Put small pure helpers in `src/js/utils.js` instead of repeating them.
 
-## Reporting Issues
+## Branches and PRs
 
-Use the issue templates for bugs and feature requests. For security issues, see `.github/SECURITY.md` — do not open a public issue.
+1. Fork the repo and branch from `main` (`fix/short-description` or `feat/short-description`).
+2. Keep commits small, with a short imperative message such as `fix: cube cut-off on larger sizes`.
+3. Open the PR against `main` and fill in the template.
+
+## Bug reports
+
+Use the [issue forms](https://github.com/jayhemnani9910/rubiks-cube/issues/new/choose). Include your browser and OS, and the steps to reproduce. For security problems, follow `.github/SECURITY.md` and don't open a public issue.

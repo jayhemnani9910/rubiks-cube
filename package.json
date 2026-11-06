@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.js\"",
+    "test": "node --test",
     "format": "prettier --write \"src/**/*.{js,css}\" \"*.{md,json}\"",
     "build:wasm": "emcc src/wasm/solver.cpp -O3 -sENVIRONMENT=web -sEXPORT_ES6=1 -sMODULARIZE=1 -sEXPORTED_FUNCTIONS=['_validate_scramble','_get_hint','_malloc','_free'] -sEXPORTED_RUNTIME_METHODS=['cwrap','UTF8ToString'] -o src/wasm/solver.js"
   },
