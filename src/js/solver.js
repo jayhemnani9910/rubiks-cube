@@ -54,6 +54,13 @@ const getHint = () => {
 };
 
 export const initSolver = async () => {
+  // The solver UI (#solver-validate, #solver-hint, #solver-output) is not
+  // present in index.html. Nothing uses the WASM module on this page, so don't
+  // load it — that avoids a 404 request and a warning on every page load.
+  if (!validateButton() && !hintButton() && !output()) {
+    return;
+  }
+
   solverModule = await loadSolverModule();
 
   validateButton()?.addEventListener("click", validateScramble);
