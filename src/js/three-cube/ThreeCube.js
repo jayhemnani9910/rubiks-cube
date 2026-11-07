@@ -406,7 +406,7 @@ const resetCube = () => {
   createCube(currentSize);
 
   // Reset view angle
-  cubeGroup.rotation.x = -0.4;
+  cubeGroup.rotation.x = 0.4;
   cubeGroup.rotation.y = 0.6;
 };
 
@@ -509,7 +509,7 @@ export const initThreeCube = async (container, size = 3) => {
   createCube(size);
 
   // Initial rotation for nice view angle
-  cubeGroup.rotation.x = -0.4;
+  cubeGroup.rotation.x = 0.4;
   cubeGroup.rotation.y = 0.6;
 
   // Animation loop — only renders when dirty
